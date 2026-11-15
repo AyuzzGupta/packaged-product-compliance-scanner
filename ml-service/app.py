@@ -146,6 +146,7 @@ class RateFoodResponse(BaseModel):
     probability: float
     score_out_of_5: int
     top_features: List[TopFeature]
+    rule_baseline_grade: Optional[str] = None
     engine: str = "ml"
 
 class MatchIngredientsRequest(BaseModel):
@@ -360,11 +361,33 @@ def rate_food(req: RateFoodRequest):
     sorted_importances = sorted(feature_importances.items(), key=lambda x: x[1], reverse=True)[:5]
     top_feats = [TopFeature(feature=k, importance=round(v * 100, 2)) for k, v in sorted_importances]
 
+    # Compute baseline rule-based Nutri-Score for honest comparison
+    energy_kj = float(n.energy_kcal or 0) * 4.184
+    p_energy = min(10, int(energy_kj // 335))
+    p_sugars = min(10, int(float(n.sugars_100g or 0) // 4.5))
+    p_satfat = min(10, int(float(n.saturated_fat_100g or 0) // 1.0))
+    p_sodium = min(10, int(float(n.sodium_100g or 0) // 90))
+    p_fiber = min(5, int(float(n.fiber_100g or 0) // 0.9))
+    p_protein = min(5, int(float(n.proteins_100g or 0) // 1.6))
+    rule_score = (p_energy + p_sugars + p_satfat + p_sodium) - (p_fiber + p_protein)
+    
+    if rule_score <= -1:
+        rule_grade = 'A'
+    elif rule_score <= 2:
+        rule_grade = 'B'
+    elif rule_score <= 10:
+        rule_grade = 'C'
+    elif rule_score <= 18:
+        rule_grade = 'D'
+    else:
+        rule_grade = 'E'
+
     return RateFoodResponse(
         grade=grade,
         probability=round(probability, 4),
         score_out_of_5=score_out_of_5,
         top_features=top_feats,
+        rule_baseline_grade=rule_grade,
         engine="ml"
     )
 

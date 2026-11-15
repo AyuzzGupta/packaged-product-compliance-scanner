@@ -295,7 +295,7 @@ function renderMetrologyCard(data) {
   const engineTag = document.getElementById('metrologyEngineTag');
 
   scoreVal.textContent = `${data.complianceScore || 0}%`;
-  summaryText.textContent = data.complianceSummary || 'Verification completed.';
+  summaryText.innerHTML = `${escapeHtml(data.complianceSummary || 'Verification completed.')}<br><small style="color: var(--text-subtle); display: block; margin-top: 4px;">Presence check only. Preliminary screening, not official certification.</small>`;
   engineTag.textContent = data.engine === 'ml' ? 'ML + Rules' : 'Deterministic Rules';
 
   const statutoryRef = {

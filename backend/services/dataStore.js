@@ -1,47 +1,61 @@
 /* =================================================================
-   Data Store — JSON file-based persistence layer
+   Data Store — Concurrency-Safe JSON File-Based Persistence Layer
    
-   Provides read/write access to scans.json. Normalizes legacy records
-   without mode/category (defaulting mode='retailer', category='other').
-   Supports filtering by mode and category.
+   Features:
+     - Promise-based serialized write queue preventing concurrent write collisions.
+     - Atomic filesystem writes via temporary file creation and atomic rename.
+     - Test isolation: records with `isTest: true` are excluded from live stats,
+       dashboard KPIs, and history logs.
+     - Dynamic DATA_FILE resolution supporting testing overrides.
    ================================================================= */
 
 const fs   = require('fs');
 const path = require('path');
 
-const DATA_FILE = process.env.DATA_FILE
-  ? path.resolve(process.env.DATA_FILE)
-  : path.join(__dirname, '../../data/scans.json');
+function getDataFilePath() {
+  return process.env.DATA_FILE
+    ? path.resolve(process.env.DATA_FILE)
+    : path.join(__dirname, '../../data/scans.json');
+}
 
 /**
- * Ensures the scans.json file exists.
+ * Ensures the data storage file and directory exist.
  */
 function init() {
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
-    console.log('[dataStore] Created empty scans.json');
+  const filePath = getDataFilePath();
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, '[]', 'utf-8');
+    console.log(`[dataStore] Initialized clean data store at: ${filePath}`);
   }
 }
 
 /**
- * Reads, parses, and normalizes all scan records.
+ * Reads and normalizes all scan records.
+ * @param {boolean} includeTest - Whether to include test runs (default: false)
  * @returns {Array}
  */
-function getAllScans() {
+function getAllScans(includeTest = false) {
+  const filePath = getDataFilePath();
   try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+    if (!fs.existsSync(filePath)) return [];
+    const raw = fs.readFileSync(filePath, 'utf-8');
     const records = JSON.parse(raw);
     
-    // Normalize older records
-    return records.map(r => ({
-      ...r,
-      mode: r.mode || 'retailer',
-      category: r.category || (r.isFood ? 'food' : 'other'),
-      engine: r.engine || 'rules',
-      ratingOrConcern: r.ratingOrConcern || r.nutriScoreGrade || r.healthBadge || 'N/A'
-    }));
+    return records
+      .filter(r => includeTest ? true : !r.isTest)
+      .map(r => ({
+        ...r,
+        mode: r.mode || 'retailer',
+        category: r.category || (r.isFood ? 'food' : 'other'),
+        engine: r.engine || 'rules',
+        ratingOrConcern: r.ratingOrConcern || r.nutriScoreGrade || r.healthBadge || 'N/A'
+      }));
   } catch (err) {
-    console.error('[dataStore] Error reading scans.json:', err.message);
+    console.error('[dataStore] Error reading scans data:', err.message);
     return [];
   }
 }
@@ -50,10 +64,11 @@ function getAllScans() {
  * Returns recent scans matching optional filters (mode, category).
  * @param {number} n
  * @param {Object} [filters]
+ * @param {boolean} [includeTest]
  * @returns {Array}
  */
-function getRecentScans(n = 10, filters = {}) {
-  let scans = getAllScans();
+function getRecentScans(n = 10, filters = {}, includeTest = false) {
+  let scans = getAllScans(includeTest);
 
   if (filters.mode && filters.mode !== 'all') {
     scans = scans.filter(s => s.mode === filters.mode);
@@ -67,27 +82,62 @@ function getRecentScans(n = 10, filters = {}) {
     .slice(0, n);
 }
 
+// Global promise queue to serialize file writes
+let writeQueue = Promise.resolve();
+
 /**
- * Appends a new scan record to scans.json.
+ * Concurrency-safe record persistence using queue serialization and atomic rename.
  * @param {Object} record
+ * @returns {Promise<Object>}
  */
 function addScan(record) {
-  const scans = getAllScans();
-  scans.push(record);
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(scans, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('[dataStore] Error writing scans.json:', err.message);
-  }
+  return new Promise((resolve, reject) => {
+    writeQueue = writeQueue.then(async () => {
+      const filePath = getDataFilePath();
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      let records = [];
+      if (fs.existsSync(filePath)) {
+        try {
+          const raw = await fs.promises.readFile(filePath, 'utf-8');
+          records = JSON.parse(raw);
+        } catch (_) {
+          records = [];
+        }
+      }
+
+      records.push(record);
+
+      const tempFile = path.join(dir, `.tmp_scans_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.json`);
+      try {
+        await fs.promises.writeFile(tempFile, JSON.stringify(records, null, 2), 'utf-8');
+        await fs.promises.rename(tempFile, filePath);
+        resolve(record);
+      } catch (writeErr) {
+        if (fs.existsSync(tempFile)) {
+          try { await fs.promises.unlink(tempFile); } catch (_) {}
+        }
+        console.error('[dataStore] Atomic write failed:', writeErr.message);
+        reject(writeErr);
+      }
+    }).catch(err => {
+      console.error('[dataStore] Write queue error:', err);
+      reject(err);
+    });
+  });
 }
 
 /**
  * Computes aggregate statistics across scans with optional mode/category filters.
  * @param {Object} [filters]
+ * @param {boolean} [includeTest]
  * @returns {Object}
  */
-function getStats(filters = {}) {
-  let scans = getAllScans();
+function getStats(filters = {}, includeTest = false) {
+  let scans = getAllScans(includeTest);
 
   if (filters.mode && filters.mode !== 'all') {
     scans = scans.filter(s => s.mode === filters.mode);
@@ -101,6 +151,7 @@ function getStats(filters = {}) {
     return {
       totalScans: 0,
       averageComplianceScore: 0,
+      averageHealthScore: 0,
       mostCommonlyMissingField: 'None',
       healthyPercentage: 0,
       fullyCompliantPercentage: 0
@@ -152,4 +203,11 @@ function getStats(filters = {}) {
   };
 }
 
-module.exports = { init, getAllScans, getRecentScans, addScan, getStats };
+module.exports = {
+  init,
+  getDataFilePath,
+  getAllScans,
+  getRecentScans,
+  addScan,
+  getStats
+};

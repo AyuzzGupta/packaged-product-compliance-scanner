@@ -78,7 +78,8 @@ async function runTests() {
         text: sample.text,
         filename: sample.id + '.txt',
         mode: sample.mode || 'consumer',
-        category: 'auto'
+        category: 'auto',
+        isTest: true
       });
 
       if (response.status !== 200 || !response.data.success) {

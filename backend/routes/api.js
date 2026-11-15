@@ -92,7 +92,17 @@ function checkMlHealth() {
 /**
  * Common analysis pipeline given text, filename, mode, and category override.
  */
-async function processAnalysisPipeline({ text, filename = 'label.jpg', mode = 'consumer', category = 'auto', ocrConfidence = 100, isEdited = false }) {
+async function processAnalysisPipeline({
+  text,
+  filename = 'label.jpg',
+  mode = 'consumer',
+  category = 'auto',
+  ocrConfidence = 100,
+  winningVariant = 'none',
+  variantsTested = [],
+  isEdited = false,
+  isTest = false
+}) {
   const selectedMode = (mode || 'consumer').toLowerCase();
   const compliance = complianceCheck.runComplianceCheck(text);
   const lowConfidence = !isEdited && (text.length < 15 || ocrConfidence < 60);
@@ -103,12 +113,17 @@ async function processAnalysisPipeline({ text, filename = 'label.jpg', mode = 'c
     timestamp: new Date().toISOString(),
     mode: selectedMode,
     complianceScore: compliance.score,
+    complianceVerdict: compliance.verdict,
+    complianceDisclaimer: 'Presence check only. Preliminary screening, not official certification.',
     fieldsDetected: compliance.fields,
     complianceSummary: compliance.summary,
     rawOcrText: text,
     ocrConfidence,
+    winningVariant,
+    variantsTested,
     lowConfidence,
-    isEdited
+    isEdited,
+    isTest: Boolean(isTest)
   };
 
   if (selectedMode === 'retailer') {
@@ -132,6 +147,7 @@ async function processAnalysisPipeline({ text, filename = 'label.jpg', mode = 'c
     record.engine = foodHealth.engine;
     record.rating = foodHealth.rating;
     record.nutriScoreGrade = foodHealth.rating;
+    record.ruleBaselineGrade = foodHealth.ruleBaselineGrade;
     record.healthScore = foodHealth.healthScore;
     record.score_out_of_5 = foodHealth.score_out_of_5;
     record.healthBadge = foodHealth.badge;
@@ -204,23 +220,44 @@ router.get('/models', (req, res) => {
   });
 });
 
+function handleMulterError(err, res) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        error: `File size exceeds the limit of ${maxUploadMb}MB. Please compress or resize the label image.`,
+        code: 'LIMIT_FILE_SIZE'
+      });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        success: false,
+        error: `Batch limit exceeded. You can upload up to ${maxBatchFiles} images at once.`,
+        code: 'LIMIT_FILE_COUNT'
+      });
+    }
+    return res.status(400).json({ success: false, error: err.message, code: err.code });
+  }
+  return res.status(400).json({ success: false, error: err.message || 'Invalid upload request.' });
+}
+
 /**
  * POST /api/scan (Single Image)
  */
 router.post('/scan', (req, res) => {
   upload.single('image')(req, res, async (err) => {
-    if (err) return res.status(400).json({ success: false, error: err.message });
+    if (err) return handleMulterError(err, res);
     if (!req.file) return res.status(400).json({ success: false, error: 'No image uploaded.' });
 
+    const imagePath = req.file.path;
     try {
       const mode = req.body.mode || req.query.mode || 'consumer';
       const category = req.body.category || req.query.category || 'auto';
-      const imagePath = req.file.path;
 
       console.log(`[POST /api/scan] File: ${req.file.originalname}, Mode: ${mode}, Category: ${category}`);
 
-      // 1. OCR with Sharp preprocessing
-      const ocrResult = await ocrService.extractText(imagePath);
+      // 1. OCR with multi-variant Sharp preprocessing
+      const ocrResult = await ocrService.extractText(imagePath, { fastMode: false });
       const rawText = ocrResult.text || '';
       const confidence = ocrResult.confidence || 0;
 
@@ -230,16 +267,24 @@ router.post('/scan', (req, res) => {
         filename: req.file.originalname,
         mode,
         category,
-        ocrConfidence: confidence
+        ocrConfidence: confidence,
+        winningVariant: ocrResult.winningVariant,
+        variantsTested: ocrResult.variantsTested,
+        isTest: req.body.isTest === true || req.body.isTest === 'true'
       });
 
       // 3. Save to dataStore
-      dataStore.addScan(record);
+      await dataStore.addScan(record);
 
       return res.json({ success: true, data: record });
     } catch (procErr) {
       console.error('[API /scan] Error:', procErr);
       return res.status(500).json({ success: false, error: procErr.message });
+    } finally {
+      // Ephemeral storage policy: Delete uploaded image file immediately after processing
+      if (fs.existsSync(imagePath)) {
+        try { fs.unlinkSync(imagePath); } catch (_) {}
+      }
     }
   });
 });
@@ -249,7 +294,7 @@ router.post('/scan', (req, res) => {
  */
 router.post('/scan-batch', (req, res) => {
   upload.array('images', maxBatchFiles)(req, res, async (err) => {
-    if (err) return res.status(400).json({ success: false, error: err.message });
+    if (err) return handleMulterError(err, res);
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ success: false, error: 'Please select at least 1 image for batch scan.' });
     }
@@ -260,7 +305,8 @@ router.post('/scan-batch', (req, res) => {
 
       for (const file of req.files) {
         try {
-          const ocrResult = await ocrService.extractText(file.path);
+          // Fast mode: 2 variants to keep batch inspection fast
+          const ocrResult = await ocrService.extractText(file.path, { fastMode: true });
           const rawText = ocrResult.text || '';
           const confidence = ocrResult.confidence || 0;
 
@@ -269,10 +315,13 @@ router.post('/scan-batch', (req, res) => {
             filename: file.originalname,
             mode: 'retailer',
             category: 'other',
-            ocrConfidence: confidence
+            ocrConfidence: confidence,
+            winningVariant: ocrResult.winningVariant,
+            variantsTested: ocrResult.variantsTested,
+            isTest: req.body.isTest === true || req.body.isTest === 'true'
           });
 
-          dataStore.addScan(record);
+          await dataStore.addScan(record);
           results.push(record);
         } catch (itemErr) {
           results.push({
@@ -281,6 +330,11 @@ router.post('/scan-batch', (req, res) => {
             complianceScore: 0,
             status: 'Error'
           });
+        } finally {
+          // Ephemeral storage policy: Delete uploaded image immediately
+          if (fs.existsSync(file.path)) {
+            try { fs.unlinkSync(file.path); } catch (_) {}
+          }
         }
       }
 
@@ -311,7 +365,7 @@ router.post('/scan-batch', (req, res) => {
  */
 router.post('/analyze-text', async (req, res) => {
   try {
-    const { text, filename = 'manual_input.txt', mode = 'consumer', category = 'auto' } = req.body;
+    const { text, filename = 'manual_input.txt', mode = 'consumer', category = 'auto', isTest = false } = req.body;
     if (!text || !text.trim()) {
       return res.status(400).json({ success: false, error: 'Text cannot be empty.' });
     }
@@ -322,10 +376,13 @@ router.post('/analyze-text', async (req, res) => {
       mode,
       category,
       ocrConfidence: 100,
-      isEdited: true
+      winningVariant: 'direct_text_input',
+      variantsTested: ['direct_text_input'],
+      isEdited: true,
+      isTest: isTest === true || isTest === 'true'
     });
 
-    dataStore.addScan(record);
+    await dataStore.addScan(record);
     return res.json({ success: true, data: record });
   } catch (err) {
     console.error('[API /analyze-text] Error:', err);

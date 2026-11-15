@@ -354,6 +354,7 @@ async function runHealthCheck(ocrText, filename = '') {
 
   let rating = 'C';
   let probability = 0.85;
+  let ruleBaselineGrade = null;
   let healthScore = 55;
   let whyReasons = [];
   let warnings = [];
@@ -382,6 +383,7 @@ async function runHealthCheck(ocrText, filename = '') {
       const mlFood = await callMlRateFood(nutrientMap, ocrText);
       rating = mlFood.grade;
       probability = mlFood.probability;
+      ruleBaselineGrade = mlFood.rule_baseline_grade || null;
       engine = 'ml';
 
       const gradeScoreMap = { 'A': 90, 'B': 75, 'C': 55, 'D': 35, 'E': 15 };
@@ -458,6 +460,7 @@ async function runHealthCheck(ocrText, filename = '') {
     isFood: true,
     rating,
     nutriScoreGrade: rating,
+    ruleBaselineGrade,
     score_out_of_5: nutriScoreToScore5(rating),
     healthScore,
     badge,

@@ -110,19 +110,24 @@ function runComplianceCheck(ocrText) {
   const total       = fields.length;
   const score       = Math.round((passedCount / total) * 100);
 
-  // Human-readable summary
+  // NOTE: This rule list verifies the physical presence of statutory declarations as required
+  // under Rule 6 of the Legal Metrology (Packaged Commodities) Rules, 2011. Before commercial
+  // deployment, the specific regex pattern definitions, font height rules, and principal display
+  // panel area constraints must be formally verified against the latest official Rule 6 Gazette text.
+  const verdict = score === 100
+    ? 'All 5 core declarations detected'
+    : `${passedCount} of ${total} declarations detected`;
+
+  // Human-readable summary stating clearly this is a presence check
   let summary;
   if (score === 100) {
-    summary = 'All required fields detected! This label appears to be compliant with Legal Metrology requirements.';
-  } else if (score >= 60) {
-    const missing = total - passedCount;
-    summary = `${missing} field${missing > 1 ? 's' : ''} could not be verified — please check the label manually for completeness.`;
+    summary = 'All 5 core declarations detected. Presence check only. Preliminary screening, not official certification.';
   } else {
     const missing = total - passedCount;
-    summary = `${missing} of ${total} required fields are missing or unreadable. This label may not meet Legal Metrology compliance.`;
+    summary = `${passedCount} of ${total} declarations detected (${missing} missing or unverified). Presence check only. Preliminary screening, not official certification.`;
   }
 
-  return { score, fields, summary };
+  return { score, fields, summary, verdict };
 }
 
 
