@@ -20,6 +20,14 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 uploads/
 
+# Academic reports, viva preparation & local build tools (local only)
+docs/reports/
+scripts/report-tools/
+docs/viva/
+scripts/build_viva_pdf.py
+*.docx
+*.doc
+
 # OS artifacts
 .DS_Store
 Thumbs.db
