@@ -1183,26 +1183,18 @@ CURATED_INGREDIENTS = [
 
 def build_db():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(base_dir, '..'))
+    project_root = os.path.abspath(os.path.join(base_dir, '..', '..'))
     
     # Target 1: data/ingredientDB.json (shared root)
     target1_dir = os.path.join(project_root, 'data')
     os.makedirs(target1_dir, exist_ok=True)
     target1_path = os.path.join(target1_dir, 'ingredientDB.json')
 
-    # Target 2: backend/data/ingredientDB.json (for Node express server)
-    target2_dir = os.path.join(project_root, 'backend', 'data')
-    os.makedirs(target2_dir, exist_ok=True)
-    target2_path = os.path.join(target2_dir, 'ingredientDB.json')
-
     print(f"Building ingredient database with {len(CURATED_INGREDIENTS)} curated items...")
     
     with open(target1_path, 'w', encoding='utf-8') as f:
         json.dump(CURATED_INGREDIENTS, f, indent=2, ensure_ascii=False)
     print(f" Saved: {target1_path}")
-
-    with open(target2_path, 'w', encoding='utf-8') as f:
-        json.dump(CURATED_INGREDIENTS, f, indent=2, ensure_ascii=False)
     print(f" Saved: {target2_path}")
 
     print("Ingredient database successfully generated!")

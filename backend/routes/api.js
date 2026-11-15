@@ -17,7 +17,7 @@ const path    = require('path');
 const fs      = require('fs');
 const http    = require('http');
 
-const dataStore       = require('../data/dataStore');
+const dataStore       = require('../services/dataStore');
 const ocrService      = require('../services/ocrService');
 const complianceCheck = require('../services/complianceCheck');
 const categoryDetect  = require('../services/categoryDetect');

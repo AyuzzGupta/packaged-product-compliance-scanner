@@ -15,7 +15,7 @@ import numpy as np
 random.seed(42)
 np.random.seed(42)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 BUNDLED_DIR = os.path.join(BASE_DIR, 'data', 'bundled')
 PROCESSED_DIR = os.path.join(BASE_DIR, 'data', 'processed')
 os.makedirs(BUNDLED_DIR, exist_ok=True)

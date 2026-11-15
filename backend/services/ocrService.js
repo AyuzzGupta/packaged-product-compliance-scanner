@@ -43,6 +43,10 @@ async function preprocessImage(inputPath) {
   }
 }
 
+const TESSDATA_DIR = process.env.TESSDATA_PATH 
+  ? path.resolve(process.env.TESSDATA_PATH)
+  : path.join(__dirname, '../assets/tessdata');
+
 /**
  * Runs OCR on the given image file and returns extracted text and confidence.
  * @param   {string} imagePath — Absolute path to the image file on disk.
@@ -58,7 +62,11 @@ async function extractText(imagePath) {
       isTemp = true;
     }
 
-    const worker = await Tesseract.createWorker('eng');
+    const worker = await Tesseract.createWorker('eng', 1, {
+      langPath: TESSDATA_DIR,
+      cachePath: TESSDATA_DIR,
+      gzip: false
+    });
     const result = await worker.recognize(targetPath);
     await worker.terminate();
 

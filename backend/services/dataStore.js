@@ -9,7 +9,9 @@
 const fs   = require('fs');
 const path = require('path');
 
-const DATA_FILE = path.join(__dirname, 'scans.json');
+const DATA_FILE = process.env.DATA_FILE
+  ? path.resolve(process.env.DATA_FILE)
+  : path.join(__dirname, '../../data/scans.json');
 
 /**
  * Ensures the scans.json file exists.

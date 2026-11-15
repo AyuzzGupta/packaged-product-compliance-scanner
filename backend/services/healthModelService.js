@@ -9,7 +9,7 @@
 const fs   = require('fs');
 const path = require('path');
 
-const MODEL_PATH = path.join(__dirname, '../data/healthModel.json');
+const MODEL_PATH = path.join(__dirname, '../../data/healthModel.json');
 
 let model = null;
 

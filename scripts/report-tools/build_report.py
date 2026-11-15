@@ -326,8 +326,11 @@ def update_toc_and_lists(doc):
             add_leader_line(p, f_title, f_pg, font_pt=10.5, space_after=3.5)
 
 def main():
-    input_file = "SIH26034_Project_Report_v2.docx"
-    output_file = "SIH26034_Project_Report_v3.docx"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(base_dir, '..', '..'))
+    reports_dir = os.path.join(project_root, 'docs', 'reports')
+    input_file = os.path.join(reports_dir, 'archive', 'SIH26034_Project_Report_v2.docx')
+    output_file = os.path.join(reports_dir, 'archive', 'SIH26034_Project_Report_v3.docx')
 
     print(f"Loading {input_file}...")
     doc = docx.Document(input_file)

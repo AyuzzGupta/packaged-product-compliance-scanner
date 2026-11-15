@@ -7,7 +7,7 @@ const express = require('express');
 const path    = require('path');
 const fs      = require('fs');
 
-const dataStore = require('./data/dataStore');
+const dataStore = require('./services/dataStore');
 const apiRoutes = require('./routes/api');
 
 const app  = express();
@@ -26,8 +26,9 @@ dataStore.init();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve sample label images
-app.use('/samples', express.static(path.join(__dirname, 'samples')));
+// Serve sample label images from data/samples
+const samplesDir = path.join(__dirname, '../data/samples');
+app.use('/samples', express.static(samplesDir));
 
 // Serve uploaded images (for debugging / review)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -66,7 +67,7 @@ function startServer(port) {
     console.log(` Packaged Product Compliance Scanner Server (SIH26034)`);
     console.log(` Status: Running at http://localhost:${port}`);
     console.log(` Static Frontend: ${frontendDir}`);
-    console.log(` Samples Directory: ${path.join(__dirname, 'samples')}`);
+    console.log(` Samples Directory: ${samplesDir}`);
     console.log('====================================================');
   });
 

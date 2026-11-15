@@ -16,7 +16,7 @@ const healthModelService = require('./healthModelService');
 
 const ML_SERVICE_HOST = process.env.ML_SERVICE_HOST || '127.0.0.1';
 const ML_SERVICE_PORT = process.env.ML_SERVICE_PORT || 8001;
-const INGREDIENT_DB_PATH = path.join(__dirname, '../data/ingredientDB.json');
+const INGREDIENT_DB_PATH = path.join(__dirname, '../../data/ingredientDB.json');
 
 /**
  * FSSAI Statutory per-100g thresholds.

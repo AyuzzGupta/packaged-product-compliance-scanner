@@ -16,7 +16,7 @@ const http = require('http');
 const fs   = require('fs');
 const path = require('path');
 
-const SAMPLE_PATH = path.join(__dirname, 'sample_texts.json');
+const SAMPLE_PATH = path.join(__dirname, 'fixtures/sample_texts.json');
 const SERVER_PORT = process.env.PORT || 5001;
 
 function sendPostRequest(port, endpoint, payload) {
