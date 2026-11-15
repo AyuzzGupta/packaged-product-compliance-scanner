@@ -58,6 +58,7 @@ function switchMode(newMode) {
   currentMode = newMode;
   localStorage.setItem('compliance_mode', newMode);
   applyModeUI(newMode);
+  loadStats();
 
   // If a result is currently displayed, re-render it to reflect mode change
   if (lastScanResult) {
@@ -293,10 +294,27 @@ function renderMetrologyCard(data) {
   const summaryText = document.getElementById('metrologySummaryText');
   const tableBody = document.getElementById('metrologyTableBody');
   const engineTag = document.getElementById('metrologyEngineTag');
+  const ocrConfTag = document.getElementById('ocrConfidenceTag');
+  const reanalyzeHint = document.getElementById('reanalyzeHint');
 
   scoreVal.textContent = `${data.complianceScore || 0}%`;
   summaryText.innerHTML = `${escapeHtml(data.complianceSummary || 'Verification completed.')}<br><small style="color: var(--text-subtle); display: block; margin-top: 4px;">Presence check only. Preliminary screening, not official certification.</small>`;
-  engineTag.textContent = data.engine === 'ml' ? 'ML + Rules' : 'Deterministic Rules';
+  
+  const engineLabel = data.engine === 'ml' ? 'ML Engine' : (data.engine === 'hybrid' ? 'Hybrid (ML+Rules)' : 'Rule-Based');
+  engineTag.textContent = engineLabel;
+
+  if (ocrConfTag) {
+    ocrConfTag.textContent = `OCR Conf: ${data.ocrConfidence || 0}%`;
+    ocrConfTag.className = `engine-tag ${(data.ocrConfidence < 60) ? 'warning' : 'ml'}`;
+  }
+
+  if (reanalyzeHint) {
+    if (data.ocrConfidence < 60 || data.lowConfidence) {
+      reanalyzeHint.style.display = 'flex';
+    } else {
+      reanalyzeHint.style.display = 'none';
+    }
+  }
 
   const statutoryRef = {
     net_quantity: 'Rule 6(1)(e) — Standard Units of Weight/Measure',
@@ -650,14 +668,29 @@ async function checkMlServiceHealth() {
 
 async function loadStats() {
   try {
-    const res = await fetch('/api/stats');
+    const res = await fetch(`/api/stats?mode=${currentMode}`);
     const json = await res.json();
     if (json.success && json.data) {
       const s = json.data;
+      const card3Label = document.getElementById('statCard3Label');
+      const card4Label = document.getElementById('statCard4Label');
+      const card3Val = document.getElementById('statMissingField');
+      const card4Val = document.getElementById('statCompliantPct');
+
       document.getElementById('statTotalScans').textContent = s.totalScans || 0;
       document.getElementById('statAvgScore').textContent = `${s.averageComplianceScore || 0}%`;
-      document.getElementById('statMissingField').textContent = s.mostCommonlyMissingField || 'None';
-      document.getElementById('statCompliantPct').textContent = `${s.fullyCompliantPercentage || 0}%`;
+
+      if (currentMode === 'consumer') {
+        if (card3Label) card3Label.textContent = 'Food Grades (A/B vs D/E)';
+        if (card3Val) card3Val.textContent = `${s.foodGradesAB || 0} vs ${s.foodGradesDE || 0}`;
+        if (card4Label) card4Label.textContent = 'High-Concern Cosmetics';
+        if (card4Val) card4Val.textContent = `${s.highConcernCosmetics || 0} flagged`;
+      } else {
+        if (card3Label) card3Label.textContent = 'Most missed rule';
+        if (card3Val) card3Val.textContent = s.mostCommonlyMissingField || 'Consumer care';
+        if (card4Label) card4Label.textContent = 'Full Compliance Rate';
+        if (card4Val) card4Val.textContent = `${s.fullyCompliantPercentage || 0}%`;
+      }
     }
   } catch (_) {}
 }

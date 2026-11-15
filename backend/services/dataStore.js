@@ -182,11 +182,29 @@ function getStats(filters = {}, includeTest = false) {
     }
   }
 
+  // Shorten label for neat card presentation
+  if (mostMissing.toLowerCase().includes('consumer care')) {
+    mostMissing = 'Consumer care';
+  } else if (mostMissing.toLowerCase().includes('net quantity')) {
+    mostMissing = 'Net quantity';
+  } else if (mostMissing.toLowerCase().includes('price') || mostMissing.toLowerCase().includes('mrp')) {
+    mostMissing = 'MRP';
+  } else if (mostMissing.toLowerCase().includes('manufacturer')) {
+    mostMissing = 'Manufacturer';
+  } else if (mostMissing.toLowerCase().includes('date')) {
+    mostMissing = 'Dates';
+  }
+
   const fullyCompliantCount = scans.filter(s => (s.complianceScore || 0) === 100).length;
   const fullyCompliantPct = Math.round((fullyCompliantCount / total) * 100);
 
   const healthyCount = scans.filter(s => s.healthBadge === 'Healthy' || s.ratingOrConcern === 'A' || s.ratingOrConcern === 'B').length;
   const healthyPct = Math.round((healthyCount / total) * 100);
+
+  // Mode-aware health breakdowns
+  const foodGradesAB = scans.filter(s => s.category === 'food' && ['A', 'B'].includes(s.ratingOrConcern)).length;
+  const foodGradesDE = scans.filter(s => s.category === 'food' && ['D', 'E'].includes(s.ratingOrConcern)).length;
+  const highConcernCosmetics = scans.filter(s => s.category === 'cosmetic' && (s.concernLevel === 'High' || s.ratingOrConcern === 'High')).length;
 
   const foodScansWithScore = scans.filter(s => s.healthScore !== null && s.healthScore !== undefined);
   const avgHealthScore = foodScansWithScore.length > 0
@@ -199,7 +217,10 @@ function getStats(filters = {}, includeTest = false) {
     averageHealthScore: avgHealthScore,
     mostCommonlyMissingField: mostMissing,
     healthyPercentage: healthyPct,
-    fullyCompliantPercentage: fullyCompliantPct
+    fullyCompliantPercentage: fullyCompliantPct,
+    foodGradesAB,
+    foodGradesDE,
+    highConcernCosmetics
   };
 }
 

@@ -90,8 +90,8 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         </div>
         <div class="stat-meta">
-          <span class="stat-meta-label">Most Common Non-Compliance</span>
-          <span class="stat-meta-value" id="statMissingField">None</span>
+          <span class="stat-meta-label" id="statCard3Label">Most missed rule</span>
+          <span class="stat-meta-value" id="statMissingField">Consumer care</span>
         </div>
       </div>
 
@@ -100,7 +100,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
         </div>
         <div class="stat-meta">
-          <span class="stat-meta-label">Full Compliance Rate</span>
+          <span class="stat-meta-label" id="statCard4Label">Full Compliance Rate</span>
           <span class="stat-meta-value" id="statCompliantPct">--%</span>
         </div>
       </div>
@@ -141,16 +141,16 @@
       <div class="samples-strip" id="samplesStrip">
         <span class="samples-label">Test with bundled sample labels:</span>
         <button type="button" class="sample-chip" data-sample="sample_label_rice.jpg">
-          Basmati Rice (Food &bull; Compliant)
+          Basmati Rice
         </button>
         <button type="button" class="sample-chip" data-sample="sample_label_juice.jpg">
-          Fruit Juice (Food &bull; High Sugar)
+          Fruit Juice
         </button>
         <button type="button" class="sample-chip" data-sample="sample_label_soap.jpg">
-          Herbal Soap (Cosmetic)
+          Herbal Soap
         </button>
         <button type="button" class="sample-chip" data-sample="sample_label_electronics.jpg">
-          Wireless Earbuds (Electronics)
+          Wireless Earbuds
         </button>
       </div>
 
@@ -233,10 +233,20 @@
             <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 7l4 8M21 7l-4 8"></path><path d="M7 15a4 4 0 0 1-4-4h8a4 4 0 0 1-4 4z"></path><path d="M17 15a4 4 0 0 1-4-4h8a4 4 0 0 1-4 4z"></path></svg>
             <span class="card-title-text">Legal Metrology Compliance Report (Rule 6)</span>
           </div>
-          <span class="engine-tag" id="metrologyEngineTag">Rules Engine</span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="engine-tag" id="ocrConfidenceTag">OCR Conf: 100%</span>
+            <span class="engine-tag" id="metrologyEngineTag">Rules Engine</span>
+          </div>
         </div>
 
         <div class="card-body-content">
+          <div id="reanalyzeHint" class="alert-strip warning" style="margin-bottom: 14px; display: none;">
+            <svg class="alert-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <div>
+              <strong>Low OCR Confidence:</strong> Characters may be misread or obscured. Review and modify text below in the <strong>Extracted OCR Text Drawer</strong>, then click <em>Re-analyze Text</em>.
+            </div>
+          </div>
+
           <div class="score-banner">
             <div class="score-display">
               <span class="score-val" id="metrologyScoreVal">0%</span>

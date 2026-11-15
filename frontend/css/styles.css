@@ -271,6 +271,8 @@ a:hover {
   align-items: center;
   gap: 14px;
   box-shadow: var(--shadow-subtle);
+  min-height: 84px;
+  height: 100%;
 }
 
 .stat-icon {
