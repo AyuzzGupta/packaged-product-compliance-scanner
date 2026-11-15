@@ -3,15 +3,20 @@
    Main Express Server Entry Point
    ================================================================= */
 
-const express = require('express');
 const path    = require('path');
+const dotenv  = require('dotenv');
+// Load .env from project root or current working dir
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config();
+
+const express = require('express');
 const fs      = require('fs');
 
 const dataStore = require('./services/dataStore');
 const apiRoutes = require('./routes/api');
 
 const app  = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || '5001', 10);
 
 // Ensure necessary directories exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -59,7 +64,7 @@ app.get('*', (req, res) => {
 });
 
 // Start Server with fallback if port (e.g. 5000 on macOS) is in use
-const DEFAULT_PORT = parseInt(process.env.PORT || '5000', 10);
+const DEFAULT_PORT = PORT;
 
 function startServer(port) {
   const server = app.listen(port, () => {

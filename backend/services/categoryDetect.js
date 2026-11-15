@@ -10,9 +10,10 @@
 
 const http = require('http');
 
-const ML_SERVICE_HOST = process.env.ML_SERVICE_HOST || '127.0.0.1';
-const ML_SERVICE_PORT = process.env.ML_SERVICE_PORT || 8001;
-const ML_CLASSIFY_URL = `http://${ML_SERVICE_HOST}:${ML_SERVICE_PORT}/classify`;
+const mlUrl = new URL(process.env.ML_SERVICE_URL || 'http://127.0.0.1:8001');
+const ML_SERVICE_HOST = mlUrl.hostname;
+const ML_SERVICE_PORT = parseInt(mlUrl.port || '8001', 10);
+const ML_TIMEOUT_MS = parseInt(process.env.ML_TIMEOUT_MS || '4000', 10);
 
 const FOOD_KEYWORDS = [
   'nutrition', 'energy', 'carbohydrate', 'sugar', 'protein', 'fat', 'saturated fat',
@@ -53,7 +54,7 @@ function callMlClassifier(text) {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload)
       },
-      timeout: 2500
+      timeout: ML_TIMEOUT_MS
     }, (res) => {
       let data = '';
       res.on('data', chunk => { data += chunk; });

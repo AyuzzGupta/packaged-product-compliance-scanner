@@ -416,5 +416,6 @@ def match_ingredients(req: MatchIngredientsRequest):
 
 if __name__ == '__main__':
     import uvicorn
-    print("Starting ML Microservice on http://localhost:8001...")
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    ml_port = int(os.environ.get('ML_PORT', '8001'))
+    print(f"Starting ML Microservice on http://0.0.0.0:{ml_port}...")
+    uvicorn.run(app, host="0.0.0.0", port=ml_port)

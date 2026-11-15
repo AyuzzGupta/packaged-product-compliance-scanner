@@ -41,11 +41,18 @@ const storage = multer.diskStorage({
   }
 });
 
+const maxUploadMb = parseInt(process.env.MAX_UPLOAD_MB || '8', 10);
+const maxBatchFiles = parseInt(process.env.MAX_BATCH_FILES || '10', 10);
+const mlUrl = new URL(process.env.ML_SERVICE_URL || 'http://127.0.0.1:8001');
+const ML_SERVICE_HOST = mlUrl.hostname;
+const ML_SERVICE_PORT = parseInt(mlUrl.port || '8001', 10);
+const ML_TIMEOUT_MS = parseInt(process.env.ML_TIMEOUT_MS || '4000', 10);
+
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: maxUploadMb * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|bmp/i;
+    const allowed = /jpeg|jpg|png|webp/i;
     if (allowed.test(path.extname(file.originalname).toLowerCase()) || allowed.test(file.mimetype)) {
       cb(null, true);
     } else {
@@ -55,16 +62,16 @@ const upload = multer({
 });
 
 /**
- * Checks if ML service on localhost:8001 is reachable.
+ * Checks if ML service on ML_SERVICE_URL is reachable.
  */
 function checkMlHealth() {
   return new Promise((resolve) => {
     const req = http.request({
-      hostname: '127.0.0.1',
-      port: 8001,
+      hostname: ML_SERVICE_HOST,
+      port: ML_SERVICE_PORT,
       path: '/health',
       method: 'GET',
-      timeout: 1000
+      timeout: ML_TIMEOUT_MS
     }, (res) => {
       let data = '';
       res.on('data', c => { data += c; });
@@ -241,7 +248,7 @@ router.post('/scan', (req, res) => {
  * POST /api/scan-batch (Retailer Batch Scan up to 10 images)
  */
 router.post('/scan-batch', (req, res) => {
-  upload.array('images', 10)(req, res, async (err) => {
+  upload.array('images', maxBatchFiles)(req, res, async (err) => {
     if (err) return res.status(400).json({ success: false, error: err.message });
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ success: false, error: 'Please select at least 1 image for batch scan.' });

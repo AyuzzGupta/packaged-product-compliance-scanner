@@ -50,72 +50,81 @@ Here is how the entire codebase is organized:
 ```text
 Mini Project/
 │
-├── frontend/                               # Tier 1: Client Browser Web Interface
-│   ├── index.html                          # Main scanning page (Retailer/Consumer mode toggles)
-│   ├── script.js                           # Frontend controller (upload, DOM rendering, fetch APIs)
-│   ├── styles.css                          # Modern vanilla design system (responsive, dark/light accents)
-│   ├── dashboard.html                      # Regulatory audit dashboard page
-│   ├── dashboard.js                        # Dashboard charts, metrics aggregation, CSV table render
-│   ├── health.html                         # System health check page
-│   └── health.js                           # Server and Python microservice liveness monitor
-│
 ├── backend/                                # Tier 2: Node.js & Express Application Server
-│   ├── server.js                           # Express entry point (port 5000/5001 fallback, static routes)
+│   ├── server.js                           # Express entry point (port 5001 fallback, static routes)
 │   ├── routes/
 │   │   └── api.js                          # Express REST API endpoints (/scan, /scan-batch, /stats, etc.)
 │   ├── services/
 │   │   ├── ocrService.js                   # Sharp image preprocessing & Tesseract.js WebAssembly OCR
-│   │   └── complianceService.js            # Statutory Legal Metrology Rule 6 regular-expression parser
-│   ├── data/
-│   │   ├── dataStore.js                    # Thread-safe JSON persistence manager
-│   │   ├── scans.json                      # Persistent database of historical scan records
-│   │   ├── healthModel.json                # Pre-compiled nutritional rules and nutrient baselines
-│   │   └── ingredientDB.json               # Curated database of 113 statutory food & cosmetic ingredients
-│   ├── samples/                            # Pre-loaded sample labels for instant zero-upload demonstration
-│   │   ├── sample_label_maggi.png          # Real Maggi 2-Minute Noodles packaging pouch
-│   │   ├── sample_label_rice.jpg           # Basmati rice statutory label
-│   │   ├── sample_label_soap.jpg           # PureGlow Aloe Vera Soap cosmetic label
-│   │   ├── sample_label_juice.jpg          # Fruit juice nutrition facts label
-│   │   └── sample_label_electronics.jpg    # 9W Smart LED lamp packaging declaration
-│   └── uploads/                            # Server directory storing user-uploaded label images
+│   │   ├── complianceCheck.js              # Statutory Legal Metrology Rule 6 regular-expression parser
+│   │   ├── categoryDetect.js               # Hybrid ML / rules category detection router
+│   │   ├── healthCheck.js                  # Food health, nutrition & hybrid ML engine
+│   │   ├── cosmeticCheck.js                # Cosmetic & personal care ingredient safety screening
+│   │   ├── healthModelService.js           # Open Food Facts nutrient heuristics inference
+│   │   └── dataStore.js                    # Concurrency-safe JSON persistence manager
+│   ├── assets/
+│   │   └── tessdata/eng.traineddata        # Local Tesseract OCR neural network traineddata model
+│   └── uploads/                            # Ephemeral directory storing processing label images
+│
+├── frontend/                               # Tier 1: Client Browser Web Interface
+│   ├── index.html                          # Main scanning page (Retailer/Consumer mode toggles)
+│   ├── dashboard.html                      # Regulatory audit dashboard page
+│   ├── health.html                         # System health check page
+│   ├── css/
+│   │   └── styles.css                      # Modern vanilla design system (responsive, dark/light accents)
+│   └── js/
+│       ├── script.js                       # Frontend controller (upload, DOM rendering, fetch APIs)
+│       ├── dashboard.js                    # Dashboard charts, metrics aggregation, CSV table render
+│       └── health.js                       # Server and Python microservice liveness monitor
 │
 ├── ml-service/                             # Tier 3: Python FastAPI Machine Learning Microservice
 │   ├── app.py                              # FastAPI app entry point (port 8001, REST inference endpoints)
 │   ├── requirements.txt                    # Python dependencies (FastAPI, scikit-learn, rapidfuzz, pandas)
-│   ├── prepare_data.py                     # Offline dataset compiler & synthetic OCR error generator
-│   ├── train_category.py                   # Trains Product Category Classifier (TF-IDF + Logistic Regression)
-│   ├── train_nutriscore.py                 # Trains Food Nutri-Score Model (14-Feature Random Forest)
-│   ├── build_ingredient_db.py              # Compiles statutory ingredient knowledge base from FSSAI & EU CosIng
-│   ├── data/                               # Bundled training datasets (food, cosmetic, hardware labels)
-│   └── models/                             # Serialized binary machine learning model artifacts
+│   ├── scripts/
+│   │   ├── prepare_data.py                 # Offline dataset compiler & synthetic OCR error generator
+│   │   ├── train_category.py               # Trains Product Category Classifier (TF-IDF + Logistic Regression)
+│   │   ├── train_nutriscore.py             # Trains Food Nutri-Score Model (14-Feature Random Forest)
+│   │   └── build_ingredient_db.py          # Compiles statutory ingredient knowledge base
+│   ├── data/                               # Bundled and processed training datasets
+│   └── models/                             # Serialized binary machine learning model artifacts (<3MB total)
 │       ├── category_model.joblib           # Trained category classifier model file
 │       └── nutriscore_model.joblib         # Trained Nutri-Score Random Forest model file
 │
-├── screenshots/                            # Clean, professionally named test samples & UI captures
-│   ├── ComplianceScan_UI_Main_Scan_Screen.png         # Main user interface screenshot
-│   ├── ComplianceScan_UI_Retailer_Batch_Screen.png    # Retailer mode batch processing screenshot
-│   ├── ComplianceScan_UI_Inspection_Results_Screen.png # Live inspection results & health scorecards
-│   ├── ComplianceScan_UI_Audit_Dashboard_Screen.png   # Macro-level compliance analytics dashboard
-│   ├── Test_Sample_Maggi_Statutory_Declaration_Label.png # Test packaging sample (Maggi Noodles)
-│   ├── Test_Sample_Atta_Nutritional_Label.png         # Test packaging sample (Whole Wheat Atta)
-│   ├── Test_Sample_Unibic_Cookies_Pack_Label.png      # Test packaging sample (Unibic Cookies)
-│   ├── Test_Sample_Nutritional_Information_Table.png  # Test nutrition facts table
-│   └── Test_Dataset_Acquisition_Unibic_Cookies.png    # Real-world label acquisition verification
+├── data/                                   # Shared Runtime & Seed Data
+│   ├── ingredientDB.json                   # Curated database of 113 statutory food & cosmetic ingredients
+│   ├── healthModel.json                    # Pre-compiled nutritional rules and nutrient baselines
+│   ├── scans.json                          # Persistent database of historical scan records (gitignored)
+│   └── samples/                            # Pre-loaded sample labels for instant zero-upload demonstration
+│       ├── sample_label_maggi.png          # Real Maggi 2-Minute Noodles packaging pouch
+│       ├── sample_label_rice.jpg           # Basmati rice statutory label
+│       ├── sample_label_soap.jpg           # PureGlow Aloe Vera Soap cosmetic label
+│       ├── sample_label_juice.jpg          # Fruit juice nutrition facts label
+│       └── sample_label_electronics.jpg    # 9W Smart LED lamp packaging declaration
 │
-├── scripts/                                # Project generation & maintenance utilities
-│   └── build_report.py                     # Python script that builds the formal 60-page Word project report
+├── docs/                                   # Documentation, Reports, Viva Prep & Screenshots
+│   ├── reports/
+│   │   ├── SIH26034_Project_Report_Final.docx # Final 60-Page Black & White Formal Project Report
+│   │   └── archive/                        # Historical report revisions (v1, v2, v3, format template)
+│   ├── screenshots/                        # Clean, professionally named test samples & UI captures
+│   ├── viva/                               # Comprehensive Viva preparation guide and PDF
+│   └── eval/                               # OCR & ML evaluation benchmarks
 │
-├── tests/                                  # Automated Pipeline Verification
-│   └── run_tests.js                        # 8-sample automated test suite (OCR, regex, ML fallbacks)
+├── scripts/                                # Project Automation & Maintenance Utilities
+│   ├── start-ml.js                         # Cross-platform Python launcher (macOS/Linux/Windows auto-detect)
+│   ├── reset-data.js                       # Safe database reset with automated timestamped backup
+│   └── report-tools/                       # Report generation scripts (latest + archive)
 │
-├── eng.traineddata                         # Tesseract OCR English neural network traineddata model
+├── tests/                                  # Automated Verification Suite
+│   ├── run_tests.js                        # End-to-end pipeline verification test suite
+│   ├── fixtures/                           # Sample test cases (sample_texts.json)
+│   ├── images/                             # Real label photos for OCR evaluation
+│   └── eval/                               # OCR benchmark scripts and ground truth templates
+│
+├── .env                                    # Local environment configuration (gitignored)
+├── .env.example                            # Committed environment configuration template
+├── .gitignore                              # Git exclusion rules
 ├── package.json                            # Node.js project manifest & script commands
-├── package-lock.json                       # Exact Node package dependency lock tree
-├── venv/                                   # Python virtual environment (isolated packages)
-├── node_modules/                           # Installed Node.js dependencies
-├── SIH26034_Project_Report_v1.docx         # Original project report (Version 1, preserved untouched)
-├── SIH26034_Project_Report_Final_Duplicate.docx # Final 60-Page Black & White Formal Project Report
-└── Mini Project report format III SEM_1.doc # Official college report formatting guideline document
+└── package-lock.json                       # Exact Node package dependency lock tree
 ```
 
 ---
@@ -183,28 +192,48 @@ pip install -r ml-service\requirements.txt
 
 ### Step 3: Train the Machine Learning Models (Offline & Fast)
 ```bash
-python ml-service/build_ingredient_db.py
-python ml-service/prepare_data.py
-python ml-service/train_category.py
-python ml-service/train_nutriscore.py
+python ml-service/scripts/build_ingredient_db.py
+python ml-service/scripts/prepare_data.py
+python ml-service/scripts/train_category.py
+python ml-service/scripts/train_nutriscore.py
 ```
 *(Takes only ~30 seconds to train and saves model files into `ml-service/models/`)*
 
-### Step 4: Start the Entire Application
+> **Model Storage Decision in Git**: The binary ML model files (`category_model.joblib` ~2.4MB, `nutriscore_model.joblib` ~415KB) are kept in version control because their total size is under 3 MB. This allows evaluators and teammates to immediately clone and run the application without requiring offline dataset regeneration or model retraining.
+
+### Step 4: Environment Configuration (.env)
+The project utilizes a cross-platform `.env` configuration file loaded by `dotenv`. A template `.env.example` is committed to Git:
+
+| Environment Variable | Description |
+| :--- | :--- |
+| `PORT` | HTTP port for the Express backend server (set to `5001` on macOS because default port `5000` is reserved by macOS AirPlay Receiver). |
+| `NODE_ENV` | Application environment mode (`development`, `production`, or `test`). |
+| `ML_SERVICE_URL` | Full base URL of the Python FastAPI ML microservice (`http://localhost:8001`). |
+| `ML_TIMEOUT_MS` | Network timeout in milliseconds for HTTP calls to the ML microservice (`4000`). |
+| `MAX_UPLOAD_MB` | Maximum permitted file upload size for packaging label images (`8` MB). |
+| `MAX_BATCH_FILES` | Maximum number of concurrent images allowed in Retailer batch audit mode (`10`). |
+| `DATA_FILE` | Relative or absolute path to the persistent JSON scan database (`data/scans.json`). |
+| `TESSDATA_PATH` | Path to local Tesseract OCR language traineddata model (`backend/assets/tessdata`). |
+| `ML_PORT` | Port number on which the Python FastAPI microservice binds (`8001`). |
+
+### Step 5: Start the Entire Application
 ```bash
 npm run dev
 ```
-This single command automatically starts:
-- The **Node.js Express Server** on `http://localhost:5001` (or `5000`)
-- The **Python FastAPI ML Microservice** on `http://localhost:8001`
+This single cross-platform command automatically invokes `node backend/server.js` and `node scripts/start-ml.js` concurrently:
+- The **Node.js Express Server** starts at `http://localhost:5001`
+- The **Python FastAPI ML Microservice** starts at `http://localhost:8001` (Auto-detects `venv/bin/python` on macOS/Linux, `venv\Scripts\python.exe` on Windows, or global Python)
 
-Open your browser and visit: **`http://localhost:5001`** (or `http://localhost:5000`)
+Open your browser and visit: **`http://localhost:5001`**
 
-### Step 5: Run Automated Tests
-To run the automated 8-sample pipeline test suite:
-```bash
-node tests/run_tests.js
-```
+### Step 6: Available NPM Scripts
+- `npm run dev` — Starts both Express backend and FastAPI microservice concurrently.
+- `npm start` — Starts only the Express backend server.
+- `npm run ml` — Starts only the Python FastAPI ML microservice.
+- `npm test` — Executes the automated 8-sample pipeline test suite.
+- `npm run eval:ocr` — Runs the OCR accuracy evaluation against test images.
+- `npm run eval:ml` — Evaluates ML category and Nutri-Score classification metrics.
+- `npm run reset-data` — Creates a timestamped backup of `data/scans.json` and resets the store to `[]`.
 
 ---
 

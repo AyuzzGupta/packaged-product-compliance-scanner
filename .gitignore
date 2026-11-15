@@ -14,6 +14,7 @@ __pycache__/
 
 # Runtime data and uploads
 data/scans.json
+data/scans.backup.*.json
 backend/data/scans.json
 backend/uploads/*
 !backend/uploads/.gitkeep

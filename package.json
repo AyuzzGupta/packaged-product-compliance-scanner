@@ -1,24 +1,33 @@
 {
   "name": "packaged-product-compliance-scanner",
   "version": "1.0.0",
-  "description": "Scan product labels for Legal Metrology (Packaged Commodities) compliance using OCR — SIH26034 Mini Project",
+  "description": "Automated AI & Statutory Label Inspection System for Legal Metrology (Rule 6) and Health Risk Screening — SIH26034",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "ml": "./venv/bin/python ml-service/app.py",
-    "dev": "concurrently -k -p \"[{name}]\" -n \"Node,ML\" -c \"cyan,magenta\" \"node backend/server.js\" \"./venv/bin/python ml-service/app.py\""
+    "ml": "node scripts/start-ml.js",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"Node,ML\" -c \"cyan,magenta\" \"node backend/server.js\" \"node scripts/start-ml.js\"",
+    "test": "node tests/run_tests.js",
+    "eval:ocr": "node tests/eval/run_ocr_eval.js",
+    "eval:ml": "node scripts/start-ml.js ml-service/evaluate.py",
+    "reset-data": "node scripts/reset-data.js"
   },
   "keywords": [
     "legal-metrology",
+    "rule-6",
     "ocr",
-    "compliance",
-    "fssai",
-    "label-scanner"
+    "tesseract",
+    "fastapi",
+    "scikit-learn",
+    "compliance-scanner",
+    "nutri-score",
+    "sih26034"
   ],
-  "author": "",
+  "author": "Ayush Gupta",
   "license": "ISC",
   "dependencies": {
     "concurrently": "^10.0.6",
+    "dotenv": "^18.0.10",
     "express": "^4.21.0",
     "multer": "^1.4.5-lts.1",
     "sharp": "^0.35.5",
