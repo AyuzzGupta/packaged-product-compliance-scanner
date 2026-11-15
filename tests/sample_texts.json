@@ -1,0 +1,58 @@
+[
+  {
+    "id": "test_food_healthy",
+    "name": "Food 1: Wholesome Rolled Oats (Healthy)",
+    "expected_category": "food",
+    "mode": "consumer",
+    "text": "Product: Organic Rolled Oats 100%. Net Quantity: 1 kg. MRP: Rs. 280 (Inclusive of all taxes). Manufactured by: Nature Grain Foods Pvt Ltd, Plot 14 Ind Area Pune. Consumer Care: 1800-222-333 or care@naturegrain.com. Date of Packing: 04/2026. Best Before: 12 months from packing. Nutritional Information per 100g: Energy: 365 kcal, Carbohydrates: 66g, Sugars: 1.2g, Saturated Fat: 1.3g, Sodium: 6mg, Protein: 13.5g, Dietary Fiber: 10.5g. Ingredients: 100% Whole Grain Rolled Oats."
+  },
+  {
+    "id": "test_food_junk",
+    "name": "Food 2: Ultra-Processed Biscuits (HFSS High Sugar & Palm Oil)",
+    "expected_category": "food",
+    "mode": "consumer",
+    "text": "Choco Crunch Cookies. Net Wt: 120 g. MRP Rs. 40.00. Mfg by: SweetBake Confectionery Ltd, Industrial Estate Haridwar. Customer Support Helpline: 011-23456789, email: support@sweetbake.in. Mfg Date: 02/2026. Ingredients: Refined Wheat Flour (Maida), Edible Vegetable Oil (Palmolein), Added Sugar, Invert Syrup, Cocoa Solids 4%, Leavening Agents (INS 500ii), Emulsifier (INS 322). Nutrition per 100g: Energy: 490 kcal, Sugars: 34g, Saturated Fat: 11g, Sodium: 380mg."
+  },
+  {
+    "id": "test_cosmetic_high_concern",
+    "name": "Cosmetic 1: Anti-Aging Cream (High Sensitivity Preservatives)",
+    "expected_category": "cosmetic",
+    "mode": "consumer",
+    "text": "Intense Renewal Night Cream. Net Volume: 50 ml. MRP: Rs. 650. Packed & Marketed by: DermaLuxe Cosmetics, Andheri East Mumbai. For Customer Grievances: 1800-999-444, care@dermaluxe.com. Mfg Date: 03/2026. Use Before: 24 months. Ingredients: Aqua, Mineral Oil, Glycerin, Cetyl Alcohol, DMDM Hydantoin, Propylparaben, Methylparaben, Parfum, Triethanolamine, Disodium EDTA. For external use only. Patch test recommended."
+  },
+  {
+    "id": "test_cosmetic_gentle",
+    "name": "Cosmetic 2: Soothing Barrier Serum (Low Concern Actives)",
+    "expected_category": "cosmetic",
+    "mode": "consumer",
+    "text": "Ceramide & Niacinamide Barrier Serum. Net Content: 30 ml. Maximum Retail Price: Rs. 599.00 (Incl. of all taxes). Manufactured by: PureSkin Labs, Okhla New Delhi. Customer Care Cell: care@pureskin.in, Phone: 011-88776655. Month & Year of Mfg: 05/2026. Ingredients: Water/Aqua, Glycerin, Niacinamide 5%, Sodium Hyaluronate, Ceramide NP, Panthenol, Allantoin, Squalane, Phenoxyethanol, Ethylhexylglycerin."
+  },
+  {
+    "id": "test_electronics",
+    "name": "Electronics: True Wireless Stereo Earbuds",
+    "expected_category": "other",
+    "mode": "consumer",
+    "text": "Brand: BeatPulse AirPro TWS. Model No: BP-TWS99. Net Quantity: 1 Pair Earbuds, 1 Charging Case, 1 Type-C Cable. Input Voltage: 5V = 1A. Battery: 400mAh Case, 40mAh Earbuds. BIS Registration No: R-41009876. 1 Year Limited Warranty against manufacturing defects. Marketed by: SoundTech India Pvt Ltd, Whitefield Bangalore. Customer Support Helpline: 1800-102-8888, email: care@beatpulse.in. MRP: Rs. 2,999 (Inclusive of all taxes). Country of Origin: India. Month of Import: 01/2026."
+  },
+  {
+    "id": "test_clothing",
+    "name": "Clothing: Pure Cotton Formal Shirt",
+    "expected_category": "other",
+    "mode": "consumer",
+    "text": "Premium Slim Fit Formal Shirt. Net Quantity: 1 Unit. Size: 42 cm (16.5 inch). Fabric Composition: 100% Pure Combed Cotton. Style Code: SH-COT-BLU-42. MRP: Rs. 1,499.00 (Incl. of all taxes). Manufactured and Packed by: Heritage Textile Mills, Tirupur Tamil Nadu. Consumer Complaint Officer: 0421-223344, care@heritagetextiles.com. Month & Year of Packing: 02/2026. Wash Care Instructions: Machine wash warm, wash dark colors separately, do not bleach, tumble dry low, warm iron."
+  },
+  {
+    "id": "test_incomplete_label",
+    "name": "Incomplete Label: Missing Statutory Disclosures (Rule 6 Failure)",
+    "expected_category": "other",
+    "mode": "retailer",
+    "text": "SuperClean Multipurpose Cleaner. Net Content: 500ml. Fast acting grime remover spray. Safe for kitchen and tiles."
+  },
+  {
+    "id": "test_noisy_ocr",
+    "name": "Noisy OCR Label: Typos & OCR Glitches (Robustness Test)",
+    "expected_category": "food",
+    "mode": "consumer",
+    "text": "Krlspy Namkeen M1x. Net Wt: 20O g. M.R.P: Rs. 4S.OO. Mfg by: Anand Foods, Bikaner. Consumer Care: 1800-444-222, email: care@anandfoods.com. Mfg Dt: 03/2O26. Ingredlents: Reflned Wheat Flour, Palmoleln 0il, Sodlum Benzoate, lodised Salt, Chllll Powder, Tartrazlne (lNS 102). Energy: 520 kcal, Total Sugar: 4g, Sat. Fat: 14g, Sodlum: 780mg."
+  }
+]

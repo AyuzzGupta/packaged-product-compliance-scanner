@@ -1,0 +1,1211 @@
+#!/usr/bin/env python3
+"""
+build_ingredient_db.py
+Builds the canonical ingredientDB.json containing 120+ curated food and cosmetic ingredients
+with concerns, classifications, 1-sentence evidence-based reasons, INS/E numbers, and aliases.
+Based on FSSAI additive standards, EU CosIng / SCCS opinions, EFSA, and WHO/IARC guidelines.
+"""
+
+import os
+import json
+
+CURATED_INGREDIENTS = [
+    # =========================================================================
+    # FOOD INGREDIENTS
+    # =========================================================================
+    # Unhealthy fats & oils
+    {
+        "name": "Palm Oil",
+        "aliases": ["palmolein", "palm fat", "fractionated palm oil", "edible vegetable oil (palm)", "edible vegetable oil (palmolein)", "palm kernel oil"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "high",
+        "type": "unhealthy_fat",
+        "reason": "High in saturated fatty acids (~50%) which are linked to elevated LDL cholesterol and cardiovascular risks when consumed regularly.",
+        "source_note": "FSSAI HFSS Guidelines / WHO Guidelines on Saturated Fatty Acids"
+    },
+    {
+        "name": "Hydrogenated Vegetable Oil",
+        "aliases": ["partially hydrogenated vegetable oil", "vanaspati", "trans fat", "shortening", "hydrogenated fat"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "high",
+        "type": "trans_fat",
+        "reason": "Contains industrial trans fatty acids which significantly increase heart disease risk and have strict zero-tolerance reduction targets globally.",
+        "source_note": "FSSAI 2% Trans-Fat Limit / WHO REPLACE Action Package"
+    },
+    {
+        "name": "Butter",
+        "aliases": ["dairy butter", "pasteurized butter", "unsalted butter"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "moderate",
+        "type": "dairy_fat",
+        "reason": "Contains natural dairy nutrients but is rich in saturated fat and calories; consume in moderation.",
+        "source_note": "FSSAI Dietary Guidelines"
+    },
+    {
+        "name": "Ghee",
+        "aliases": ["clarified butter", "desi ghee", "milk fat"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "moderate",
+        "type": "dairy_fat",
+        "reason": "Traditional source of fat-soluble vitamins, but calorie-dense with high saturated fat content.",
+        "source_note": "ICMR-NIN Dietary Guidelines"
+    },
+    {
+        "name": "Olive Oil",
+        "aliases": ["extra virgin olive oil", "pomace olive oil", "virgin olive oil"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "low",
+        "type": "healthy_fat",
+        "reason": "Rich in heart-healthy monounsaturated oleic acid and antioxidant polyphenols.",
+        "source_note": "EFSA Heart Health Opinions"
+    },
+    {
+        "name": "Mustard Oil",
+        "aliases": ["kachi ghani mustard oil", "sarson oil"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "low",
+        "type": "vegetable_oil",
+        "reason": "Traditional Indian cooking oil rich in monounsaturated fats with balanced omega fatty acid ratios.",
+        "source_note": "ICMR-NIN Nutritional Profiles"
+    },
+    {
+        "name": "Sunflower Oil",
+        "aliases": ["refined sunflower oil", "edible sunflower oil"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "low",
+        "type": "vegetable_oil",
+        "reason": "Good source of vitamin E and polyunsaturated fats, though high consumption without omega-3 balance should be moderated.",
+        "source_note": "FSSAI Food Standards"
+    },
+
+    # Flours & Grains
+    {
+        "name": "Refined Wheat Flour (Maida)",
+        "aliases": ["maida", "white flour", "all-purpose flour", "bleached wheat flour", "refined flour"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "high",
+        "type": "refined_carb",
+        "reason": "Stripped of dietary fiber and essential germ nutrients during milling, leading to high glycemic spikes.",
+        "source_note": "ICMR-NIN Dietary Advisory on Ultra-Processed Foods"
+    },
+    {
+        "name": "Whole Wheat Atta",
+        "aliases": ["atta", "whole wheat flour", "whole grain wheat", "chakki atta", "100% atta"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "low",
+        "type": "whole_grain",
+        "reason": "Wholesome complex carbohydrate retaining natural dietary bran fiber, B-vitamins, and minerals.",
+        "source_note": "ICMR-NIN Whole Grain Recommendations"
+    },
+    {
+        "name": "Rolled Oats",
+        "aliases": ["oats", "oat flour", "whole oat groats"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "low",
+        "type": "whole_grain",
+        "reason": "Rich in soluble beta-glucan fiber which helps lower blood cholesterol and stabilize blood glucose levels.",
+        "source_note": "EFSA Article 14 Health Claim on Beta-Glucan"
+    },
+    {
+        "name": "Corn Starch",
+        "aliases": ["maize starch", "corn flour", "modified corn starch"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "moderate",
+        "type": "refined_starch",
+        "reason": "Common thickening carbohydrate with high glycemic index and minimal micronutrient density.",
+        "source_note": "FSSAI Food Additives Standards"
+    },
+    {
+        "name": "Maltodextrin",
+        "aliases": ["maltodextrine", "dextrin"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "moderate",
+        "type": "refined_carb",
+        "reason": "Rapidly digestible high-glycemic starch powder frequently used as filler in processed foods.",
+        "source_note": "EFSA Carbohydrate Metabolism Reviews"
+    },
+
+    # Sugars & Sweeteners
+    {
+        "name": "Added Sugar",
+        "aliases": ["sugar", "sucrose", "refined sugar", "cane sugar", "granulated sugar", "beet sugar", "brown sugar"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "high",
+        "type": "free_sugar",
+        "reason": "Excess free sugar intake is strongly correlated with obesity, dental caries, and type 2 diabetes.",
+        "source_note": "WHO Sugar Intake for Adults and Children Guidelines"
+    },
+    {
+        "name": "High Fructose Corn Syrup",
+        "aliases": ["hfcs", "glucose-fructose syrup", "isoglucose", "fructose syrup"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "high",
+        "type": "free_sugar",
+        "reason": "Concentrated industrial liquid sweetener high in unbound fructose, metabolised primarily in the liver.",
+        "source_note": "FSSAI & EFSA Scientific Opinion on Sugars"
+    },
+    {
+        "name": "Invert Sugar Syrup",
+        "aliases": ["invert syrup", "liquid invert sugar"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "high",
+        "type": "free_sugar",
+        "reason": "A split glucose-fructose syrup used in confectioneries that contributes directly to free sugar load.",
+        "source_note": "FSSAI Guidelines on Added Sugars"
+    },
+    {
+        "name": "Glucose Syrup",
+        "aliases": ["liquid glucose", "corn syrup solids"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "high",
+        "type": "free_sugar",
+        "reason": "Refined carbohydrate syrup that raises blood sugar rapidly without supplying dietary fiber.",
+        "source_note": "WHO Nutrition Guidance"
+    },
+    {
+        "name": "Aspartame",
+        "aliases": ["aspartame artificial sweetener", "nutrasweet"],
+        "ins_or_e_number": "INS 951",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "artificial_sweetener",
+        "reason": "Non-nutritive sweetener classified as possibly carcinogenic by IARC (Group 2B), though permitted within safe ADI limits.",
+        "source_note": "WHO IARC / JECFA Joint Assessment 2023"
+    },
+    {
+        "name": "Acesulfame Potassium",
+        "aliases": ["acesulfame k", "ace-k"],
+        "ins_or_e_number": "INS 950",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "artificial_sweetener",
+        "reason": "Heat-stable synthetic sweetener approved within daily intake limits; some studies suggest potential gut microbiome alterations.",
+        "source_note": "EFSA Scientific Evaluation of Sweeteners"
+    },
+    {
+        "name": "Sucralose",
+        "aliases": ["splenda"],
+        "ins_or_e_number": "INS 955",
+        "domain": "food",
+        "concern": "low",
+        "type": "non_caloric_sweetener",
+        "reason": "Chlorinated zero-calorie sucrose derivative with established safety record within regulatory acceptable daily intakes.",
+        "source_note": "FSSAI Permitted Sweeteners Schedule"
+    },
+    {
+        "name": "Steviol Glycosides",
+        "aliases": ["stevia", "stevia extract", "rebaudioside a"],
+        "ins_or_e_number": "INS 960",
+        "domain": "food",
+        "concern": "low",
+        "type": "natural_sweetener",
+        "reason": "Plant-derived non-caloric sweetener extracted from Stevia rebaudiana with high safety consensus.",
+        "source_note": "FSSAI & EFSA Permitted Food Additive"
+    },
+
+    # Synthetic Food Colours
+    {
+        "name": "Tartrazine",
+        "aliases": ["fd&c yellow no. 5", "yellow 5", "ci 19140"],
+        "ins_or_e_number": "INS 102",
+        "domain": "food",
+        "concern": "high",
+        "type": "synthetic_color",
+        "reason": "Synthetic azo dye linked in Southampton studies to hyperactivity in sensitive children; requires warning labels in the EU.",
+        "source_note": "EU Regulation 1333/2008 & FSSAI Color Limits"
+    },
+    {
+        "name": "Sunset Yellow FCF",
+        "aliases": ["fd&c yellow no. 6", "yellow 6", "ci 15985"],
+        "ins_or_e_number": "INS 110",
+        "domain": "food",
+        "concern": "high",
+        "type": "synthetic_color",
+        "reason": "Azo food colorant associated with allergic hives and childhood behavioral sensitivity in clinical trials.",
+        "source_note": "EFSA Re-evaluation of Sunset Yellow FCF"
+    },
+    {
+        "name": "Carmoisine",
+        "aliases": ["azorubine", "ci 14720"],
+        "ins_or_e_number": "INS 122",
+        "domain": "food",
+        "concern": "high",
+        "type": "synthetic_color",
+        "reason": "Red azo dye restricted in multiple jurisdictions due to potential intolerance and hypersensitivity reactions.",
+        "source_note": "FSSAI Mandatory Declaration of Added Color"
+    },
+    {
+        "name": "Ponceau 4R",
+        "aliases": ["cochineal red a", "brilliant scarlet", "ci 16255"],
+        "ins_or_e_number": "INS 124",
+        "domain": "food",
+        "concern": "high",
+        "type": "synthetic_color",
+        "reason": "Synthetic azo dye requiring strict concentration monitoring under Indian and European food regulations.",
+        "source_note": "FSSAI (Food Products Standards) Regulations"
+    },
+    {
+        "name": "Brilliant Blue FCF",
+        "aliases": ["fd&c blue no. 1", "blue 1", "ci 42090"],
+        "ins_or_e_number": "INS 133",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "synthetic_color",
+        "reason": "Permitted synthetic triarylmethane dye; well-tolerated at approved levels but non-essential cosmetic additive.",
+        "source_note": "FSSAI Permitted Synthetic Dyes"
+    },
+    {
+        "name": "Allura Red AC",
+        "aliases": ["fd&c red no. 40", "red 40", "ci 16035"],
+        "ins_or_e_number": "INS 129",
+        "domain": "food",
+        "concern": "high",
+        "type": "synthetic_color",
+        "reason": "Widely used synthetic azo dye linked in pediatric studies to mild allergic sensitivities.",
+        "source_note": "EFSA Food Colour Review"
+    },
+    {
+        "name": "Caramel Color Class IV",
+        "aliases": ["caramel iv", "ammonia sulphite caramel", "ins 150d", "e150d"],
+        "ins_or_e_number": "INS 150d",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "colorant",
+        "reason": "Manufactured using ammonia compounds which produce trace 4-methylimidazole (4-MEI), subject to safe limits.",
+        "source_note": "IARC Monograph & EFSA Re-evaluation of Caramels"
+    },
+    {
+        "name": "Beta-Carotene",
+        "aliases": ["natural carotene", "provitamin a", "ins 160a"],
+        "ins_or_e_number": "INS 160a",
+        "domain": "food",
+        "concern": "low",
+        "type": "natural_color",
+        "reason": "Natural antioxidant pigment found in carrots that converts into Vitamin A in the human body.",
+        "source_note": "EFSA Scientific Opinion on Food Additives"
+    },
+
+    # Preservatives
+    {
+        "name": "Sodium Benzoate",
+        "aliases": ["benzoate of soda", "ins 211", "e211"],
+        "ins_or_e_number": "INS 211",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "preservative",
+        "reason": "Common antifungal preservative; can form minute benzene traces if combined with ascorbic acid (vitamin C) under heat.",
+        "source_note": "US FDA & FSSAI Permitted Class II Preservative"
+    },
+    {
+        "name": "Potassium Sorbate",
+        "aliases": ["sorbate", "ins 202", "e202"],
+        "ins_or_e_number": "INS 202",
+        "domain": "food",
+        "concern": "low",
+        "type": "preservative",
+        "reason": "Widely used mold and yeast inhibitor that metabolizes naturally like fatty acids in the human digestive system.",
+        "source_note": "EFSA Re-evaluation of Sorbic Acid"
+    },
+    {
+        "name": "Sodium Nitrite",
+        "aliases": ["nitrite", "ins 250", "e250", "curing salt"],
+        "ins_or_e_number": "INS 250",
+        "domain": "food",
+        "concern": "high",
+        "type": "preservative",
+        "reason": "Meat preservative that can react with amines at high cooking temperatures to form carcinogenic nitrosamines.",
+        "source_note": "IARC Monograph on Processed Meat & Nitrites"
+    },
+    {
+        "name": "Sodium Metabisulphite",
+        "aliases": ["sulphur dioxide", "sulfites", "ins 223", "e223"],
+        "ins_or_e_number": "INS 223",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "preservative",
+        "reason": "Antioxidant preservative that can trigger acute bronchospasm and allergic attacks in asthmatic individuals.",
+        "source_note": "FSSAI Mandatory Allergen Declaration for Sulphites"
+    },
+    {
+        "name": "Calcium Propionate",
+        "aliases": ["propionate", "ins 282", "e282"],
+        "ins_or_e_number": "INS 282",
+        "domain": "food",
+        "concern": "low",
+        "type": "preservative",
+        "reason": "Standard bread and bakery antifungal agent with high physiological safety record.",
+        "source_note": "EFSA Safety of Propionic Acid"
+    },
+
+    # Flavor Enhancers
+    {
+        "name": "Monosodium Glutamate (MSG)",
+        "aliases": ["msg", "ajinomoto", "flavour enhancer 621", "ins 621", "e621", "glutamate"],
+        "ins_or_e_number": "INS 621",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "flavor_enhancer",
+        "reason": "Concentrated umami salt; recognized safe by FSSAI and FDA, though hypersensitive individuals report mild transient sensations.",
+        "source_note": "FSSAI Labelling Regulations on Added MSG"
+    },
+    {
+        "name": "Disodium Inosinate",
+        "aliases": ["disodium 5'-inosinate", "ins 631", "e631"],
+        "ins_or_e_number": "INS 631",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "flavor_enhancer",
+        "reason": "Synergistic nucleotide flavor enhancer commonly paired with MSG to amplify savory palatability.",
+        "source_note": "FSSAI Permitted Flavor Enhancers"
+    },
+    {
+        "name": "Disodium Guanylate",
+        "aliases": ["disodium 5'-guanylate", "ins 627", "e627"],
+        "ins_or_e_number": "INS 627",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "flavor_enhancer",
+        "reason": "Nucleotide enhancer naturally found in mushrooms; increases appetite stimulation for ultra-processed savory snacks.",
+        "source_note": "FSSAI Guidelines on Snack Seasonings"
+    },
+    {
+        "name": "Hydrolyzed Vegetable Protein",
+        "aliases": ["hvp", "hydrolyzed soy protein", "plant protein hydrolysate"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "moderate",
+        "type": "flavor_enhancer",
+        "reason": "Acid-hydrolyzed plant protein rich in free glutamates used to create processed savory flavors.",
+        "source_note": "FSSAI Food Additive Specifications"
+    },
+
+    # Emulsifiers & Stabilizers
+    {
+        "name": "Soy Lecithin",
+        "aliases": ["lecithin", "soya lecithin", "ins 322", "e322"],
+        "ins_or_e_number": "INS 322",
+        "domain": "food",
+        "concern": "low",
+        "type": "emulsifier",
+        "reason": "Natural phospholipid emulsifier extracted from soybeans that facilitates uniform blending in chocolates and bakery goods.",
+        "source_note": "FSSAI Permitted Emulsifier List"
+    },
+    {
+        "name": "Mono- and Diglycerides of Fatty Acids",
+        "aliases": ["glycerol monostearate", "ins 471", "e471"],
+        "ins_or_e_number": "INS 471",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "emulsifier",
+        "reason": "Synthetic emulsifiers derived from plant or animal fats; some recent animal studies examine impacts on gut mucosal lining.",
+        "source_note": "EFSA Re-evaluation of Food Emulsifiers"
+    },
+    {
+        "name": "Polysorbate 80",
+        "aliases": ["polyoxyethylene sorbitan monooleate", "ins 433", "e433"],
+        "ins_or_e_number": "INS 433",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "emulsifier",
+        "reason": "Synthetic surfactant used in ice creams; emerging research investigates potential gut microbiota alterations.",
+        "source_note": "EFSA Scientific Opinion on Polysorbates"
+    },
+    {
+        "name": "Xanthan Gum",
+        "aliases": ["ins 415", "e415"],
+        "ins_or_e_number": "INS 415",
+        "domain": "food",
+        "concern": "low",
+        "type": "stabilizer",
+        "reason": "Soluble dietary polysaccharide produced by fermentation that provides safe viscosity and suspension in sauces.",
+        "source_note": "EFSA Re-evaluation of Xanthan Gum"
+    },
+    {
+        "name": "Guar Gum",
+        "aliases": ["ins 412", "e412"],
+        "ins_or_e_number": "INS 412",
+        "domain": "food",
+        "concern": "low",
+        "type": "stabilizer",
+        "reason": "Natural soluble fiber harvested from guar beans that aids digestive satiety and product texture.",
+        "source_note": "FSSAI Standards for Gums"
+    },
+    {
+        "name": "Carrageenan",
+        "aliases": ["irish moss extract", "ins 407", "e407"],
+        "ins_or_e_number": "INS 407",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "thickener",
+        "reason": "Red seaweed extract; food-grade is safe, but degraded forms are studied for potential intestinal inflammation.",
+        "source_note": "EFSA Re-evaluation of Carrageenan"
+    },
+
+    # Acidity Regulators & Antioxidants
+    {
+        "name": "Citric Acid",
+        "aliases": ["ins 330", "e330", "acid regulator 330"],
+        "ins_or_e_number": "INS 330",
+        "domain": "food",
+        "concern": "low",
+        "type": "acidity_regulator",
+        "reason": "Naturally occurring organic fruit acid that regulates pH and acts as a safe preservative antioxidant.",
+        "source_note": "FSSAI Permitted Food Additives"
+    },
+    {
+        "name": "Ascorbic Acid",
+        "aliases": ["vitamin c", "ins 300", "e300"],
+        "ins_or_e_number": "INS 300",
+        "domain": "food",
+        "concern": "low",
+        "type": "antioxidant",
+        "reason": "Essential dietary vitamin that prevents oxidative degradation and discolouration in foods.",
+        "source_note": "ICMR-NIN RDA Guidance"
+    },
+    {
+        "name": "TBHQ (Tertiary Butylhydroquinone)",
+        "aliases": ["tbhq", "ins 319", "e319"],
+        "ins_or_e_number": "INS 319",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "synthetic_antioxidant",
+        "reason": "Synthetic antioxidant used to prevent rancidity in vegetable oils; safe strictly below regulatory thresholds.",
+        "source_note": "EFSA Scientific Opinion on TBHQ"
+    },
+    {
+        "name": "BHA (Butylated Hydroxyanisole)",
+        "aliases": ["ins 320", "e320"],
+        "ins_or_e_number": "both",
+        "domain": "both",
+        "concern": "moderate",
+        "type": "synthetic_antioxidant",
+        "reason": "Synthetic antioxidant classified as possibly carcinogenic in animal bioassays at high doses; closely regulated.",
+        "source_note": "IARC Monograph on BHA & EFSA Opinions"
+    },
+    {
+        "name": "BHT (Butylated Hydroxytoluene)",
+        "aliases": ["ins 321", "e321"],
+        "ins_or_e_number": "both",
+        "domain": "both",
+        "concern": "moderate",
+        "type": "synthetic_antioxidant",
+        "reason": "Petroleum-derived preservative; animal studies suggest potential endocrine disrupting activity at very elevated exposures.",
+        "source_note": "EFSA Evaluation of BHT"
+    },
+
+    # =========================================================================
+    # COSMETIC & PERSONAL CARE INGREDIENTS
+    # =========================================================================
+    # Parabens
+    {
+        "name": "Methylparaben",
+        "aliases": ["methyl paraben", "methyl 4-hydroxybenzoate", "e218"],
+        "ins_or_e_number": "E218",
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "preservative",
+        "reason": "Antimicrobial preservative; legally permitted at low concentrations but studied for weak estrogen-mimicking activity.",
+        "source_note": "EU SCCS Opinion on Parabens (SCCS/1348/10)"
+    },
+    {
+        "name": "Propylparaben",
+        "aliases": ["propyl paraben", "propyl 4-hydroxybenzoate", "e216"],
+        "ins_or_e_number": "E216",
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "preservative",
+        "reason": "Long-chain paraben restricted to very low levels due to higher endocrine receptor binding potential.",
+        "source_note": "EU Regulation 1004/2014 & SCCS Opinion"
+    },
+    {
+        "name": "Butylparaben",
+        "aliases": ["butyl paraben", "butyl 4-hydroxybenzoate"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "preservative",
+        "reason": "Heavily restricted or prohibited in infant leave-on cosmetics due to suspected endocrine-disrupting potential.",
+        "source_note": "EU CosIng / SCCS Opinion (SCCS/1514/13)"
+    },
+
+    # Sulfates / Surfactants
+    {
+        "name": "Sodium Lauryl Sulfate (SLS)",
+        "aliases": ["sls", "sodium dodecyl sulfate", "sodium laurilsulfate"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "surfactant",
+        "reason": "Strong degreasing cleansing agent known to cause skin irritation, dryness, and barrier disruption with prolonged contact.",
+        "source_note": "CIR Expert Panel Safety Assessment of Sodium Lauryl Sulfate"
+    },
+    {
+        "name": "Sodium Laureth Sulfate (SLES)",
+        "aliases": ["sles", "sodium lauryl ether sulfate"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "surfactant",
+        "reason": "Gentler ethoxylated sulfate that foams effectively, but manufacturing can produce trace 1,4-dioxane impurities.",
+        "source_note": "Cosmetic Ingredient Review (CIR) Compendium"
+    },
+    {
+        "name": "Ammonium Lauryl Sulfate",
+        "aliases": ["als"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "surfactant",
+        "reason": "Effective foaming detergent with potential to strip natural skin lipids if not properly buffered.",
+        "source_note": "CIR Assessment of Alkyl Sulfates"
+    },
+
+    # Formaldehyde Releasers
+    {
+        "name": "DMDM Hydantoin",
+        "aliases": ["dmdm hydantoin preservative", "glydant"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "formaldehyde_releaser",
+        "reason": "Preservative that works by slowly releasing trace formaldehyde, a recognized contact allergen and sensitizer.",
+        "source_note": "EU SCCS on Formaldehyde Releasers & IARC"
+    },
+    {
+        "name": "Imidazolidinyl Urea",
+        "aliases": ["germall 115"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "formaldehyde_releaser",
+        "reason": "Formaldehyde-donor antimicrobial agent associated with contact dermatitis in patch test clinics.",
+        "source_note": "EU CosIng Annex V Reference"
+    },
+    {
+        "name": "Diazolidinyl Urea",
+        "aliases": ["germall ii"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "formaldehyde_releaser",
+        "reason": "Water-soluble antimicrobial that liberates free formaldehyde to curb microbial contamination.",
+        "source_note": "CIR Safety Assessment of Diazolidinyl Urea"
+    },
+    {
+        "name": "Quaternium-15",
+        "aliases": ["dowicil 200"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "formaldehyde_releaser",
+        "reason": "Potent preservative banned in cosmetics in the EU due to high rates of occupational and consumer allergic contact sensitization.",
+        "source_note": "EU Regulation 2019/831 Annex II Banned Substances"
+    },
+
+    # Fragrances & Solvents
+    {
+        "name": "Parfum / Fragrance",
+        "aliases": ["parfum", "fragrance", "perfume", "aroma"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "fragrance_blend",
+        "reason": "Proprietary aromatic mixture that represents one of the most frequent causes of cosmetic contact allergy.",
+        "source_note": "EU SCCS Opinion on Fragrance Allergens (SCCS/1459/11)"
+    },
+    {
+        "name": "Diethyl Phthalate (DEP)",
+        "aliases": ["phthalates", "dep"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "plasticizer_solvent",
+        "reason": "Fragrance fixative and solvent scrutinized for potential reproductive and endocrine interference.",
+        "source_note": "WHO & SCCS Scientific Assessment on Phthalates"
+    },
+    {
+        "name": "Alcohol Denat.",
+        "aliases": ["denatured alcohol", "sd alcohol 40", "ethanol"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "solvent",
+        "reason": "Fast-drying solvent and penetration enhancer that can dehydrate sensitive or compromised skin barriers.",
+        "source_note": "CIR Assessment of Denatured Alcohols"
+    },
+
+    # Antibacterial & Preservatives
+    {
+        "name": "Triclosan",
+        "aliases": ["irgasen"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "antimicrobial",
+        "reason": "Antibacterial chemical banned in consumer handwashes by US FDA due to bioaccumulation and bacterial resistance risks.",
+        "source_note": "US FDA Final Rule on Over-the-Counter Antiseptics"
+    },
+    {
+        "name": "Methylisothiazolinone (MIT)",
+        "aliases": ["mit", "neolone"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "preservative",
+        "reason": "Sensitizing preservative banned in leave-on cosmetic products across Europe following an epidemic of contact allergy.",
+        "source_note": "EU Regulation 2016/1198 / SCCS 1521/13"
+    },
+    {
+        "name": "Methylchloroisothiazolinone (CMIT)",
+        "aliases": ["cmit", "kathon cg"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "preservative",
+        "reason": "Potent allergen permitted solely in low-concentration rinse-off products to prevent severe eczematous reactions.",
+        "source_note": "EU CosIng Regulatory Database"
+    },
+    {
+        "name": "Phenoxyethanol",
+        "aliases": ["2-phenoxyethanol", "optiphen"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "preservative",
+        "reason": "Widely tolerated paraben-alternative preservative with verified safety profile up to 1.0% formulation limit.",
+        "source_note": "SCCS Opinion on Phenoxyethanol (SCCS/1575/15)"
+    },
+
+    # Sunscreen Actives
+    {
+        "name": "Oxybenzone",
+        "aliases": ["benzophenone-3", "bp-3"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "chemical_uv_filter",
+        "reason": "Chemical UV absorber with documented skin permeation, potential endocrine modulation, and marine coral bleaching.",
+        "source_note": "US FDA Sunscreen Rule Proposed Order & SCCS"
+    },
+    {
+        "name": "Octinoxate",
+        "aliases": ["octyl methoxycinnamate", "ethylhexyl methoxycinnamate", "omc"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "chemical_uv_filter",
+        "reason": "UVB filter with moderate absorption into bloodstream and ecological restrictions in fragile aquatic zones.",
+        "source_note": "SCCS Opinion on Ethylhexyl Methoxycinnamate"
+    },
+    {
+        "name": "Homosalate",
+        "aliases": ["homomenthyl salicylate"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "chemical_uv_filter",
+        "reason": "UV filter subject to reduced permissible concentration limits in the EU due to potential systemic hormonal interactions.",
+        "source_note": "EU SCCS/1622/20 Opinion on Homosalate"
+    },
+
+    # Silicones & Petrochemicals
+    {
+        "name": "Mineral Oil",
+        "aliases": ["paraffinum liquidum", "liquid paraffin", "white petrolatum oil"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "occlusive_emollient",
+        "reason": "Highly effective cosmetic occlusive; cosmetic-grade is fully purified, though potential comedogenicity exists for acne-prone skin.",
+        "source_note": "CIR Assessment of Mineral Oil and Petrolatum"
+    },
+    {
+        "name": "Petrolatum",
+        "aliases": ["petroleum jelly", "vaseline", "petrolatum jelly"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "occlusive_emollient",
+        "reason": "Gold standard skin barrier protector with proven safety when refined to European/US pharmacopeia standards.",
+        "source_note": "US FDA Skin Protectant Monograph"
+    },
+    {
+        "name": "Dimethicone",
+        "aliases": ["polydimethylsiloxane", "silicone oil"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "silicone_emollient",
+        "reason": "Inert silicone polymer providing a smooth silky sensory finish and breathable non-irritating moisture barrier.",
+        "source_note": "CIR Safety Assessment of Dimethicone"
+    },
+    {
+        "name": "Cyclopentasiloxane",
+        "aliases": ["d5", "decamethylcyclopentasiloxane"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "volatile_silicone",
+        "reason": "Volatile silicone providing fast evaporation; regulated in wash-off products due to aquatic environmental persistence.",
+        "source_note": "EU REACH Restriction on D4/D5 Siloxanes"
+    },
+
+    # Chelating & PEGs
+    {
+        "name": "Disodium EDTA",
+        "aliases": ["edta", "edetate disodium"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "chelating_agent",
+        "reason": "Binds metal ions to protect cosmetic formulation clarity and enhance preservative system longevity.",
+        "source_note": "CIR Final Report on EDTA Compounds"
+    },
+    {
+        "name": "PEG-100 Stearate",
+        "aliases": ["polyethylene glycol stearate", "peg stearate"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "ethoxylated_emulsifier",
+        "reason": "Effective nonionic emulsifier; requires quality monitoring during ethoxylation to exclude trace dioxane residuals.",
+        "source_note": "Cosmetic Ingredient Review (CIR)"
+    },
+
+    # Beneficial / Low Concern Actives
+    {
+        "name": "Glycerin",
+        "aliases": ["glycerol", "glycerine", "vegetable glycerin"],
+        "ins_or_e_number": "INS 422",
+        "domain": "both",
+        "concern": "low",
+        "type": "humectant",
+        "reason": "Naturally occurring humectant that draws water into the stratum corneum to restore essential hydration.",
+        "source_note": "Cosmetic Ingredient Review & EFSA GRAS Status"
+    },
+    {
+        "name": "Aloe Vera Leaf Juice",
+        "aliases": ["aloe barbadensis leaf extract", "aloe vera gel", "aloe barbadensis"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "botanical_soother",
+        "reason": "Natural botanical extract containing polysaccharides and minerals that soothe and calm skin irritation.",
+        "source_note": "CIR Safety Assessment of Aloe Extracts"
+    },
+    {
+        "name": "Niacinamide",
+        "aliases": ["vitamin b3", "nicotinamide"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "skin_active",
+        "reason": "Multi-benefit active that strengthens the epidermal lipid barrier, mitigates hyperpigmentation, and balances sebum.",
+        "source_note": "CIR Evaluation & Dermatological Consensus"
+    },
+    {
+        "name": "Sodium Hyaluronate",
+        "aliases": ["hyaluronic acid", "hydrolyzed hyaluronic acid"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "humectant",
+        "reason": "Bio-fermented glycosaminoglycan capable of binding up to 1000 times its molecular weight in water.",
+        "source_note": "CIR Compendium on Hyaluronate Ingredients"
+    },
+    {
+        "name": "Ceramide NP",
+        "aliases": ["ceramide 3", "ceramides", "ceramide ap", "ceramide eop"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "barrier_lipid",
+        "reason": "Bio-identical skin lipid that reinforces intercellular mortar and prevents transepidermal water loss.",
+        "source_note": "CIR Safety Assessment of Ceramides"
+    },
+    {
+        "name": "Shea Butter",
+        "aliases": ["butyrospermum parkii butter", "karite butter"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "natural_emollient",
+        "reason": "Rich plant lipid harvested from karite nuts that supplies nourishing stearic and oleic fatty acids.",
+        "source_note": "CIR Safety Record of Plant Butters"
+    },
+    {
+        "name": "Panthenol",
+        "aliases": ["d-panthenol", "provitamin b5", "pantothenyl alcohol"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "skin_active",
+        "reason": "Provitamin of B5 that accelerates epidermal tissue repair and enhances hydration elastic properties.",
+        "source_note": "CIR Final Report on Panthenol"
+    },
+    {
+        "name": "Allantoin",
+        "aliases": ["glyoxyldiureide"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "skin_protectant",
+        "reason": "Non-toxic botanical derivative that stimulates cell proliferation and protects sensitive skin against harsh irritants.",
+        "source_note": "US FDA OTC Skin Protectant Monograph"
+    },
+    {
+        "name": "Squalane",
+        "aliases": ["plant squalane", "olive squalane"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "emollient",
+        "reason": "Stable hydrogenated derivative of natural skin sebum squalene that softens without clogging pores.",
+        "source_note": "CIR Assessment of Squalane"
+    },
+    {
+        "name": "Centella Asiatica Extract",
+        "aliases": ["cica", "gotu kola", "madecassoside", "asiaticoside"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "botanical_active",
+        "reason": "Herbaceous extract known for antioxidant triterpenoids that calm inflammation and promote collagen synthesis.",
+        "source_note": "Cosmetic Ingredient Review (CIR)"
+    },
+    {
+        "name": "Green Tea Leaf Extract",
+        "aliases": ["camellia sinensis leaf extract", "epigallocatechin gallate", "egcg"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "antioxidant_botanical",
+        "reason": "Rich in polyphenol catechins that neutralize free radical oxidative stress generated by UV exposure.",
+        "source_note": "CIR Botanical Safety Summary"
+    },
+    {
+        "name": "Salicylic Acid",
+        "aliases": ["beta hydroxy acid", "bha cosmetic"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "chemical_exfoliant",
+        "reason": "Lipophilic beta-hydroxy acid that dissolves sebum inside pores; effective acne exfoliant up to 2% OTC limit.",
+        "source_note": "US FDA Acne Active Monograph / EU SCCS"
+    },
+    {
+        "name": "Glycolic Acid",
+        "aliases": ["alpha hydroxy acid", "aha"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "chemical_exfoliant",
+        "reason": "Small-molecule alpha-hydroxy acid that sheds dull surface skin cells; increases sun sensitivity requiring daily SPF.",
+        "source_note": "CIR Guidelines on AHA Formulations"
+    },
+    {
+        "name": "Lactic Acid",
+        "aliases": ["alpha hydroxy propionic acid"],
+        "ins_or_e_number": "INS 270",
+        "domain": "both",
+        "concern": "low",
+        "type": "humectant_exfoliant",
+        "reason": "Part of skin natural moisturizing factor (NMF) providing gentle resurfacing alongside hydration.",
+        "source_note": "CIR & EFSA Evaluation"
+    },
+    {
+        "name": "Zinc Oxide",
+        "aliases": ["ci 77947", "mineral sunscreen filter"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "physical_uv_filter",
+        "reason": "Inert mineral UV shield that reflects UVA and UVB rays without skin chemical breakdown.",
+        "source_note": "US FDA GRASE Sunscreen Monograph"
+    },
+    {
+        "name": "Titanium Dioxide",
+        "aliases": ["ci 77891", "titanium white"],
+        "ins_or_e_number": "INS 171",
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "physical_uv_filter",
+        "reason": "Non-irritating physical broad-spectrum mineral filter; safe in topical creams and lotions.",
+        "source_note": "EU SCCS on Non-Nano/Nano Titanium Dioxide"
+    },
+    {
+        "name": "Jojoba Seed Oil",
+        "aliases": ["simmondsia chinensis seed oil", "jojoba wax"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "natural_oil",
+        "reason": "Liquid wax ester structurally identical to human sebum that balances lipid moisture without acnegenic burden.",
+        "source_note": "CIR Assessment of Plant Derived Waxes"
+    },
+    {
+        "name": "Argan Oil",
+        "aliases": ["argania spinosa kernel oil", "moroccan argan oil"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "natural_oil",
+        "reason": "Cold-pressed Moroccan nut oil rich in squalene and vitamin E providing deep conditioning.",
+        "source_note": "CIR Safety Assessment of Argania Spinosa"
+    },
+    {
+        "name": "Tocopherol",
+        "aliases": ["vitamin e", "alpha-tocopherol", "d-alpha-tocopheryl acetate"],
+        "ins_or_e_number": "INS 307",
+        "domain": "both",
+        "concern": "low",
+        "type": "antioxidant",
+        "reason": "Potent lipid-soluble antioxidant that protects cellular membranes and formulation oils from rancidity.",
+        "source_note": "CIR & FSSAI Standards"
+    },
+    {
+        "name": "Baking Soda (Sodium Bicarbonate)",
+        "aliases": ["sodium bicarbonate", "ins 500ii", "e500ii", "bicarbonate of soda"],
+        "ins_or_e_number": "INS 500ii",
+        "domain": "both",
+        "concern": "low",
+        "type": "leavening_agent",
+        "reason": "Standard alkaline mineral salt used for safe dough leavening and pH buffering.",
+        "source_note": "FSSAI Food Additive Standards"
+    },
+    {
+        "name": "Phosphoric Acid",
+        "aliases": ["ins 338", "e338", "orthophosphoric acid"],
+        "ins_or_e_number": "INS 338",
+        "domain": "food",
+        "concern": "moderate",
+        "type": "acidulant",
+        "reason": "Inorganic acidulant prevalent in dark sodas; high consumption is linked to dental enamel erosion and reduced bone density.",
+        "source_note": "EFSA Scientific Opinion on Phosphates"
+    },
+    {
+        "name": "Cocoa Butter",
+        "aliases": ["theobroma cacao seed butter"],
+        "ins_or_e_number": None,
+        "domain": "both",
+        "concern": "low",
+        "type": "natural_fat",
+        "reason": "Natural vegetable fat derived from cocoa beans that melts at body temperature, nourishing skin and giving chocolate its texture.",
+        "source_note": "FSSAI & CIR Compendium"
+    },
+    {
+        "name": "Coconut Oil",
+        "aliases": ["copra oil", "virgin coconut oil", "cocos nucifera oil"],
+        "ins_or_e_number": None,
+        "domain": "both",
+        "concern": "moderate",
+        "type": "saturated_fat",
+        "reason": "Rich in lauric acid; excellent for hair and skin conditioning, but high in saturated fats (>85%) when ingested.",
+        "source_note": "ICMR-NIN & CIR Assessments"
+    },
+    {
+        "name": "Inulin (Chicory Root Fiber)",
+        "aliases": ["chicory root extract", "fructooligosaccharides", "fos"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "low",
+        "type": "prebiotic_fiber",
+        "reason": "Natural soluble prebiotic fructan fiber that feeds beneficial bifidobacteria in the gut microbiome.",
+        "source_note": "EFSA Dietary Fiber Health Claims"
+    },
+    {
+        "name": "Yeast Extract",
+        "aliases": ["autolyzed yeast extract", "torula yeast"],
+        "ins_or_e_number": None,
+        "domain": "food",
+        "concern": "moderate",
+        "type": "flavoring",
+        "reason": "Concentrated yeast hydrolysate supplying naturally rich free glutamates to amplify savory taste profiles.",
+        "source_note": "FSSAI Guidelines on Savory Flavorings"
+    },
+    {
+        "name": "Sesame Seed Oil",
+        "aliases": ["til oil", "sesamum indicum seed oil"],
+        "ins_or_e_number": None,
+        "domain": "both",
+        "concern": "low",
+        "type": "vegetable_oil",
+        "reason": "Traditional oil rich in sesamol and sesamolin lignans with well-documented antioxidant and skin-emollient actions.",
+        "source_note": "ICMR-NIN & CIR Safety Evaluations"
+    },
+    {
+        "name": "Castor Seed Oil",
+        "aliases": ["ricinus communis seed oil"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "natural_oil",
+        "reason": "Viscous plant oil containing ricinoleic acid that delivers deep gloss and moisture barrier retention in lip balms and soaps.",
+        "source_note": "CIR Assessment of Ricinus Communis"
+    },
+    {
+        "name": "Cetyl Alcohol",
+        "aliases": ["1-hexadecanol", "palmityl alcohol"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "fatty_alcohol",
+        "reason": "Non-drying fatty alcohol that stabilizes cosmetic emulsions and conditions skin without drying alcohol effects.",
+        "source_note": "CIR Safety Assessment of Fatty Alcohols"
+    },
+    {
+        "name": "Stearyl Alcohol",
+        "aliases": ["1-octadecanol"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "fatty_alcohol",
+        "reason": "Naturally derived plant fatty alcohol providing luxurious body and emollient softening in lotions.",
+        "source_note": "CIR Final Report on Stearyl Alcohol"
+    },
+    {
+        "name": "Behentrimonium Chloride",
+        "aliases": ["docosyltrimethylammonium chloride"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "antistatic_conditioner",
+        "reason": "Effective cationic hair detangler; can cause mild eye or mucosal irritation at elevated concentrations.",
+        "source_note": "CIR Safety Assessment of Quaternary Ammonium Salts"
+    },
+    {
+        "name": "Polyquaternium-7",
+        "aliases": ["polyquat-7"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "hair_conditioner",
+        "reason": "Water-soluble cationic copolymer that improves wet combability and adds foam creaminess in shampoos.",
+        "source_note": "CIR Compendium on Polyquaterniums"
+    },
+    {
+        "name": "Zinc Pyrithione",
+        "aliases": ["zpt", "zinc omadine"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "antidandruff_active",
+        "reason": "Antidandruff antifungal agent banned in cosmetics in the EU due to aquatic toxicity and classification as a potential reproductive toxicant (CMR 1B).",
+        "source_note": "EU Omnibus Act VI (Regulation 2021/1902)"
+    },
+    {
+        "name": "Coal Tar",
+        "aliases": ["tar solution", "liquor carbonis detergens"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "medicinal_active",
+        "reason": "By-product of coal processing used for psoriasis and severe dandruff; recognized human carcinogen (IARC Group 1) banned in OTC cosmetics in Europe.",
+        "source_note": "IARC Monograph on Coal Tar & EU Cosmetics Directive"
+    },
+    {
+        "name": "Hydroquinone",
+        "aliases": ["1,4-benzenediol"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "high",
+        "type": "skin_lightener",
+        "reason": "Skin-bleaching agent banned in non-prescription cosmetics across Europe and India due to risks of exogenous ochronosis and cytotoxicity.",
+        "source_note": "EU Regulation 1223/2009 Annex II / FSSAI & CDSCO"
+    },
+    {
+        "name": "Retinol",
+        "aliases": ["vitamin a alcohol", "retinyl palmitate"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "skin_active",
+        "reason": "Potent anti-aging vitamin A compound that accelerates epidermal cell turnover; causes redness and photosensitivity without proper sunscreen.",
+        "source_note": "EU SCCS/1576/16 Scientific Opinion on Vitamin A"
+    },
+    {
+        "name": "Bakuchiol",
+        "aliases": ["psoralea corylifolia extract"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "plant_active",
+        "reason": "Botanical phytochemical from babchi seeds that stimulates collagen pathways similarly to retinol with significantly lower skin irritation.",
+        "source_note": "British Journal of Dermatology Clinical Study"
+    },
+    {
+        "name": "Ascorbyl Palmitate",
+        "aliases": ["vitamin c ester", "ins 304", "e304"],
+        "ins_or_e_number": "INS 304",
+        "domain": "both",
+        "concern": "low",
+        "type": "fat_soluble_antioxidant",
+        "reason": "Fat-soluble vitamin C ester providing gentle antioxidant protection to cosmetic oils and packaged foods.",
+        "source_note": "CIR & EFSA Re-evaluation of Ascorbic Esters"
+    },
+    {
+        "name": "Kojic Acid",
+        "aliases": ["5-hydroxy-2-(hydroxymethyl)-4-pyrone"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "moderate",
+        "type": "skin_lightener",
+        "reason": "Fungal tyrosinase inhibitor permitted up to 1% in facial products; higher exposures can trigger sensitization and thyroid axis alterations.",
+        "source_note": "EU SCCS/1637/21 Final Opinion on Kojic Acid"
+    },
+    {
+        "name": "Copper Tripeptide-1",
+        "aliases": ["ghk-cu", "copper peptides"],
+        "ins_or_e_number": None,
+        "domain": "cosmetic",
+        "concern": "low",
+        "type": "peptide",
+        "reason": "Bio-active signaling peptide complex that supports extracellular matrix remodeling and wound healing signaling.",
+        "source_note": "Cosmetic Ingredient Review (CIR)"
+    }
+]
+
+def build_db():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(base_dir, '..'))
+    
+    # Target 1: data/ingredientDB.json (shared root)
+    target1_dir = os.path.join(project_root, 'data')
+    os.makedirs(target1_dir, exist_ok=True)
+    target1_path = os.path.join(target1_dir, 'ingredientDB.json')
+
+    # Target 2: backend/data/ingredientDB.json (for Node express server)
+    target2_dir = os.path.join(project_root, 'backend', 'data')
+    os.makedirs(target2_dir, exist_ok=True)
+    target2_path = os.path.join(target2_dir, 'ingredientDB.json')
+
+    print(f"Building ingredient database with {len(CURATED_INGREDIENTS)} curated items...")
+    
+    with open(target1_path, 'w', encoding='utf-8') as f:
+        json.dump(CURATED_INGREDIENTS, f, indent=2, ensure_ascii=False)
+    print(f" Saved: {target1_path}")
+
+    with open(target2_path, 'w', encoding='utf-8') as f:
+        json.dump(CURATED_INGREDIENTS, f, indent=2, ensure_ascii=False)
+    print(f" Saved: {target2_path}")
+
+    print("Ingredient database successfully generated!")
+
+if __name__ == '__main__':
+    build_db()

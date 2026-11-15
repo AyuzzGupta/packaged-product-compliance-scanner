@@ -1,0 +1,53 @@
+Food Health & Nutri-Score Model Evaluation Report
+=============================================================
+Date: 2026-10-24 23:26:40.443287
+Model: Random Forest Classifier (n_estimators=100, max_depth=12)
+Classes: A, B, C, D, E
+
+Dataset Summary:
+Total food items: 1750
+Held-out test set size: 350
+
+Comparison vs Baseline Formula on Test Split:
+- ML Random Forest Exact Accuracy: 100.00%
+- ML Within-1-Grade Accuracy:       100.00%
+- Rule-based Baseline Accuracy:     50.86%
+- Rule Within-1-Grade Accuracy:     95.71%
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           A     1.0000    1.0000    1.0000        70
+           B     1.0000    1.0000    1.0000        70
+           C     1.0000    1.0000    1.0000        70
+           D     1.0000    1.0000    1.0000        70
+           E     1.0000    1.0000    1.0000        70
+
+    accuracy                         1.0000       350
+   macro avg     1.0000    1.0000    1.0000       350
+weighted avg     1.0000    1.0000    1.0000       350
+
+
+Confusion Matrix [A, B, C, D, E]:
+[[70  0  0  0  0]
+ [ 0 70  0  0  0]
+ [ 0  0 70  0  0]
+ [ 0  0  0 70  0]
+ [ 0  0  0  0 70]]
+
+Feature Importances:
+   1. sugars_100g           : 16.94%
+   2. energy_kcal           : 12.58%
+   3. saturated_fat_100g    : 12.32%
+   4. sodium_100g           : 11.42%
+   5. fiber_100g            : 11.10%
+   6. additives_count       : 10.89%
+   7. proteins_100g         : 6.65%
+   8. has_palm_oil          : 5.04%
+   9. sugar_in_top_3        : 4.64%
+  10. salt_in_top_3         : 3.95%
+  11. oil_in_top_3          : 3.24%
+  12. has_refined_flour     : 1.24%
+  13. has_art_sweetener     : 0.00%
+  14. has_art_color         : 0.00%
+=============================================================

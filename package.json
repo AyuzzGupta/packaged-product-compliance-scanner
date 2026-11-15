@@ -1,0 +1,27 @@
+{
+  "name": "packaged-product-compliance-scanner",
+  "version": "1.0.0",
+  "description": "Scan product labels for Legal Metrology (Packaged Commodities) compliance using OCR — SIH26034 Mini Project",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "ml": "./venv/bin/python ml-service/app.py",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"Node,ML\" -c \"cyan,magenta\" \"node backend/server.js\" \"./venv/bin/python ml-service/app.py\""
+  },
+  "keywords": [
+    "legal-metrology",
+    "ocr",
+    "compliance",
+    "fssai",
+    "label-scanner"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^10.0.6",
+    "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.35.5",
+    "tesseract.js": "^5.1.1"
+  }
+}

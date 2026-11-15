@@ -1,0 +1,32 @@
+Product Category Classifier Evaluation Report
+=============================================================
+Date: 2026-10-24 23:26:02.804742
+Model: Word (1-2) + Char (3-5) TF-IDF + Calibrated Logistic Regression
+Classes: food, cosmetic, other
+
+Dataset Summary:
+Total samples: 1700
+Train samples (augmented): 2720
+Held-out Test samples: 340
+
+Evaluation Metrics on Clean Test Split:
+Accuracy: 1.0000 (100.00%)
+Noisy OCR Test Accuracy (10% noise injection): 1.0000 (100.00%)
+
+Classification Report:
+              precision    recall  f1-score   support
+
+    cosmetic     1.0000    1.0000    1.0000       120
+        food     1.0000    1.0000    1.0000       120
+       other     1.0000    1.0000    1.0000       100
+
+    accuracy                         1.0000       340
+   macro avg     1.0000    1.0000    1.0000       340
+weighted avg     1.0000    1.0000    1.0000       340
+
+
+Confusion Matrix [food, cosmetic, other]:
+[[120   0   0]
+ [  0 120   0]
+ [  0   0 100]]
+=============================================================

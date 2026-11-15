@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment and local configs
+.env
+.env.local
+
+# Runtime data and uploads
+data/scans.json
+backend/data/scans.json
+backend/uploads/*
+!backend/uploads/.gitkeep
+uploads/
+
+# OS artifacts
+.DS_Store
+Thumbs.db

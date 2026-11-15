@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComplianceScan — Legal Metrology Label Inspection (SIH26034)</title>
+  <meta name="description" content="Automated packaging compliance and label screening under Legal Metrology Rules, 2011 (Rule 6) and FSSAI/CosIng health verification.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <svg class="brand-logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18M3 7l4 8M21 7l-4 8"></path>
+          <path d="M7 15a4 4 0 0 1-4-4h8a4 4 0 0 1-4 4z"></path>
+          <path d="M17 15a4 4 0 0 1-4-4h8a4 4 0 0 1-4 4z"></path>
+        </svg>
+        <div>
+          <span class="brand-title">ComplianceScan</span>
+          <span class="brand-subtitle">Legal Metrology &amp; Label Regulatory Inspection &bull; SIH26034</span>
+        </div>
+      </div>
+
+      <nav class="header-nav">
+        <a href="index.html" class="nav-link active">Scan Label</a>
+        <a href="dashboard.html" class="nav-link">Audit Dashboard</a>
+      </nav>
+
+      <!-- Segmented Mode Control (Retailer / Consumer) -->
+      <div class="mode-segmented-control" role="group" aria-label="Inspection Mode">
+        <button type="button" class="mode-btn" id="modeBtnRetailer" data-mode="retailer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          Retailer Mode
+        </button>
+        <button type="button" class="mode-btn active" id="modeBtnConsumer" data-mode="consumer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Consumer Mode
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+
+    <!-- Page Context Bar -->
+    <div class="page-intro">
+      <div>
+        <h1 class="page-title" id="pageModeTitle">Consumer Mode: Label Inspection</h1>
+        <p class="page-description" id="pageModeDesc">
+          Verifies mandatory packaging disclosures under Legal Metrology Rules, 2011 (Rule 6) and evaluates product health risks, nutritional quality, and ingredient safety.
+        </p>
+      </div>
+
+      <div class="engine-status-pill" id="engineStatusPill" title="Local Inference Status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="engineStatusText">ML Service: Connecting...</span>
+      </div>
+    </div>
+
+    <!-- Live Metrics Strip -->
+    <section class="stats-strip" aria-label="Inspection Metrics">
+      <div class="stat-box">
+        <div class="stat-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-meta-label">Total Labels Scanned</span>
+          <span class="stat-meta-value" id="statTotalScans">0</span>
+        </div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-meta-label">Avg. Metrology Score</span>
+          <span class="stat-meta-value" id="statAvgScore">--%</span>
+        </div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-meta-label">Most Common Non-Compliance</span>
+          <span class="stat-meta-value" id="statMissingField">None</span>
+        </div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-meta-label">Full Compliance Rate</span>
+          <span class="stat-meta-value" id="statCompliantPct">--%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Upload & Scanner Section -->
+    <section class="scanner-card" aria-label="Label Upload">
+      <div class="scanner-header">
+        <div class="scanner-title" id="uploadCardTitle">Upload Packaging Label</div>
+        
+        <!-- Category selector (visible in Consumer mode) -->
+        <div class="category-select-wrapper" id="categorySelectWrap">
+          <label for="categorySelect">Product Category:</label>
+          <select id="categorySelect" class="select-control">
+            <option value="auto">Auto-detect (ML Model)</option>
+            <option value="food">Food &amp; Beverages</option>
+            <option value="cosmetic">Cosmetics &amp; Personal Care</option>
+            <option value="other">Other (Electronics, Apparel, Hardware)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Zone with Camera Support -->
+      <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Drop label photo here or browse">
+        <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display: none;">
+        <input type="file" id="batchFileInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+        
+        <svg class="drop-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+        
+        <div class="drop-prompt" id="dropPromptText">Drag &amp; drop package photograph here</div>
+        <div class="drop-subprompt" id="dropSubpromptText">Supports JPG, PNG, WEBP (Max 10MB) &bull; or <span class="browse-action">browse files from device / camera</span></div>
+      </div>
+
+      <!-- Sample Buttons Quick Bar -->
+      <div class="samples-strip" id="samplesStrip">
+        <span class="samples-label">Test with bundled sample labels:</span>
+        <button type="button" class="sample-chip" data-sample="sample_label_rice.jpg">
+          Basmati Rice (Food &bull; Compliant)
+        </button>
+        <button type="button" class="sample-chip" data-sample="sample_label_juice.jpg">
+          Fruit Juice (Food &bull; High Sugar)
+        </button>
+        <button type="button" class="sample-chip" data-sample="sample_label_soap.jpg">
+          Herbal Soap (Cosmetic)
+        </button>
+        <button type="button" class="sample-chip" data-sample="sample_label_electronics.jpg">
+          Wireless Earbuds (Electronics)
+        </button>
+      </div>
+
+      <!-- Scanning Active Indicator -->
+      <div class="scanning-indicator" id="scanningIndicator" style="display: none;">
+        <div class="scanning-spinner"></div>
+        <div>
+          <div class="scanning-text-main" id="scanningMainText">Analyzing Label Image...</div>
+          <div class="scanning-text-sub" id="scanningSubText">Running OCR preprocessing and regulatory validation rules</div>
+        </div>
+      </div>
+
+      <!-- Low Confidence Alert -->
+      <div class="alert-strip warning" id="lowConfidenceAlert" style="display: none;">
+        <svg class="alert-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <div>
+          <strong>Low OCR Confidence Warning:</strong>
+          Text extraction confidence is below 60%. Some label declarations may be partially obscured or blurry. Review and edit the extracted text in the drawer below for verification.
+        </div>
+      </div>
+
+      <!-- Error Alert -->
+      <div class="alert-strip error" id="errorAlert" style="display: none;">
+        <svg class="alert-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        <div id="errorMessage">An error occurred while inspecting the label.</div>
+      </div>
+    </section>
+
+    <!-- Retailer Batch Results Section (Visible only in Retailer Batch Mode) -->
+    <section class="results-wrapper" id="batchResultsWrapper" style="display: none;">
+      <div class="result-card">
+        <div class="card-title-bar">
+          <div class="card-title-group">
+            <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span class="card-title-text">Batch Scan Audit Report</span>
+          </div>
+          <div class="batch-toolbar">
+            <button type="button" class="btn-secondary" id="exportBatchCsvBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body-content">
+          <div class="score-banner" id="batchSummaryBanner">
+            <div>
+              <div class="score-display">
+                <span class="score-val" id="batchAvgScore">0%</span>
+                <span class="score-label">Batch Pass Rate</span>
+              </div>
+              <div class="summary-statement" id="batchSummaryText">Processing batch items...</div>
+            </div>
+          </div>
+
+          <table class="data-table" id="batchTable">
+            <thead>
+              <tr>
+                <th>Item / Filename</th>
+                <th>Compliance Score</th>
+                <th>Missing Statutory Rules</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="batchTableBody">
+              <!-- Populated via script.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inspection Results Container -->
+    <div class="results-wrapper" id="resultsWrapper" style="display: none;">
+
+      <!-- SECTION A: Legal Metrology Rule 6 Card -->
+      <section class="result-card" aria-label="Legal Metrology Compliance">
+        <div class="card-title-bar">
+          <div class="card-title-group">
+            <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 7l4 8M21 7l-4 8"></path><path d="M7 15a4 4 0 0 1-4-4h8a4 4 0 0 1-4 4z"></path><path d="M17 15a4 4 0 0 1-4-4h8a4 4 0 0 1-4 4z"></path></svg>
+            <span class="card-title-text">Legal Metrology Compliance Report (Rule 6)</span>
+          </div>
+          <span class="engine-tag" id="metrologyEngineTag">Rules Engine</span>
+        </div>
+
+        <div class="card-body-content">
+          <div class="score-banner">
+            <div class="score-display">
+              <span class="score-val" id="metrologyScoreVal">0%</span>
+              <span class="score-label">Legal Score</span>
+            </div>
+            <div class="summary-statement" id="metrologySummaryText">Loading inspection verdict...</div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 32%;">Statutory Disclosure</th>
+                <th style="width: 18%;">Status</th>
+                <th>Matched Text Declaration</th>
+              </tr>
+            </thead>
+            <tbody id="metrologyTableBody">
+              <!-- Dynamically populated 5 rows -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION B: Consumer Intelligence Card (Food / Cosmetic / Other) -->
+      <section class="result-card" id="consumerIntelligenceCard" style="display: none;" aria-label="Consumer Health and Ingredient Analysis">
+        <div class="card-title-bar">
+          <div class="card-title-group">
+            <svg class="card-title-icon" id="categoryIconSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span class="card-title-text" id="consumerCardHeading">Consumer Analysis</span>
+          </div>
+          <span class="engine-tag ml" id="consumerEngineTag">ML Model</span>
+        </div>
+
+        <div class="card-body-content" id="consumerCardBody">
+          <!-- Dynamically populated based on category (Food / Cosmetic / Other) -->
+        </div>
+      </section>
+
+      <!-- SECTION C: Extracted Text & Interactive Re-analysis Drawer -->
+      <section class="ocr-collapsible" aria-label="Extracted Text">
+        <div class="ocr-toggle-bar" id="ocrToggleBar" role="button" tabindex="0">
+          <div class="ocr-bar-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>Extracted Label Text</span>
+            <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);" id="ocrConfidenceLabel">(Confidence: --%)</span>
+          </div>
+          <span style="font-size: 12px; font-weight: 600; color: var(--accent-mint);" id="ocrToggleIndicator">Edit / View &darr;</span>
+        </div>
+
+        <div class="ocr-content-box" id="ocrContentBox" style="display: none;">
+          <textarea class="ocr-textarea" id="ocrTextArea" spellcheck="false" placeholder="Raw OCR text appears here..."></textarea>
+          
+          <div class="ocr-actions-bar">
+            <span style="font-size: 11px; color: var(--text-muted);" id="ocrCharCount">0 characters</span>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-secondary" id="copyOcrBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Text
+              </button>
+              <button type="button" class="btn-primary" id="reanalyzeBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                Re-analyze Edited Text
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Recent Scans History Section -->
+    <section class="result-card" style="margin-top: 32px;" aria-label="Recent Scans">
+      <div class="card-title-bar">
+        <div class="card-title-group">
+          <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span class="card-title-text">Recent Inspection History</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <select id="historyFilterMode" class="select-control" style="font-size: 11px; padding: 4px 8px;">
+            <option value="all">All Modes</option>
+            <option value="retailer">Retailer Mode</option>
+            <option value="consumer">Consumer Mode</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card-body-content" style="padding: 0;">
+        <table class="data-table" id="historyTable">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Filename</th>
+              <th>Mode</th>
+              <th>Category</th>
+              <th>Legal Score</th>
+              <th>Verdict / Grade</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No scan history recorded yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-container">
+      <p><strong>Legal Metrology Compliance Scanner Prototype (SIH26034)</strong> &bull; Rule-based Statutory Metrology Engine &amp; Scikit-learn Inference Microservice</p>
+      <p style="margin-top: 4px; font-size: 11px; color: var(--text-subtle);">This automated prototype conducts preliminary compliance screening and does not supersede official statutory inspections under the Legal Metrology (Packaged Commodities) Rules, 2011.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
