@@ -1,0 +1,85 @@
+{
+  "status": "evaluated",
+  "category_classifier": {
+    "accuracy": 1.0,
+    "train_samples": 1360,
+    "test_samples": 340,
+    "classes": [
+      "cosmetic",
+      "food",
+      "other"
+    ],
+    "per_class": {
+      "cosmetic": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 120
+      },
+      "food": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 120
+      },
+      "other": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 100
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "cosmetic",
+        "food",
+        "other"
+      ],
+      "matrix": [
+        [
+          120,
+          0,
+          0
+        ],
+        [
+          0,
+          120,
+          0
+        ],
+        [
+          0,
+          0,
+          100
+        ]
+      ]
+    },
+    "other_class_is_synthetic": true
+  },
+  "food_nutriscore": {
+    "test_samples": 350,
+    "random_forest_model": {
+      "exact_grade_accuracy": 1.0,
+      "within_one_grade_accuracy": 1.0
+    },
+    "rule_based_baseline": {
+      "exact_grade_accuracy": 0.5086,
+      "within_one_grade_accuracy": 0.9571
+    },
+    "feature_importances_percentage": {
+      "sugars_100g": 16.94,
+      "energy_kcal": 12.58,
+      "saturated_fat_100g": 12.32,
+      "sodium_100g": 11.42,
+      "fiber_100g": 11.1,
+      "additives_count": 10.89,
+      "proteins_100g": 6.65,
+      "has_palm_oil": 5.04,
+      "sugar_in_top_3": 4.64,
+      "salt_in_top_3": 3.95,
+      "oil_in_top_3": 3.24,
+      "has_refined_flour": 1.24,
+      "has_art_color": 0.0,
+      "has_art_sweetener": 0.0
+    }
+  }
+}

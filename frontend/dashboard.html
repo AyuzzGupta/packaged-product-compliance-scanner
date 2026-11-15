@@ -150,6 +150,33 @@
       </div>
 
       <div class="card-body-content">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          <div class="stat-box" style="padding: 10px;">
+            <div class="stat-meta">
+              <span class="stat-meta-label">Category Accuracy (Test N=340)</span>
+              <span class="stat-meta-value" id="kpiCatAcc" style="color: var(--primary);">100%</span>
+            </div>
+          </div>
+          <div class="stat-box" style="padding: 10px;">
+            <div class="stat-meta">
+              <span class="stat-meta-label">RF Nutri-Score Exact (N=350)</span>
+              <span class="stat-meta-value" id="kpiRfExact" style="color: var(--success);">100%</span>
+            </div>
+          </div>
+          <div class="stat-box" style="padding: 10px;">
+            <div class="stat-meta">
+              <span class="stat-meta-label">Rule Baseline Exact (N=350)</span>
+              <span class="stat-meta-value" id="kpiRuleExact" style="color: var(--warning);">50.9%</span>
+            </div>
+          </div>
+          <div class="stat-box" style="padding: 10px;">
+            <div class="stat-meta">
+              <span class="stat-meta-label">'Other' Class Data Source</span>
+              <span class="stat-meta-value" id="kpiOtherSynthetic" style="font-size: 14px; color: var(--text-muted);">Synthetic</span>
+            </div>
+          </div>
+        </div>
+
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
           <div>
             <div class="why-title" style="margin-bottom: 6px;">1. Product Category Classifier (TF-IDF + Calibrated Logistic Regression)</div>

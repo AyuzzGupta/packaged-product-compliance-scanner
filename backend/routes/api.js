@@ -198,6 +198,22 @@ router.get('/health', async (req, res) => {
 });
 
 /**
+ * GET /api/ml/metrics — Exposes real model evaluation metrics
+ */
+router.get('/ml/metrics', (req, res) => {
+  const metricsPath = path.join(__dirname, '../../ml-service/models/metrics.json');
+  if (fs.existsSync(metricsPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(metricsPath, 'utf-8'));
+      return res.json({ success: true, data });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: 'Failed to parse metrics.json' });
+    }
+  }
+  return res.status(404).json({ success: false, error: 'metrics.json not found. Run npm run eval:ml first.' });
+});
+
+/**
  * GET /api/models
  */
 router.get('/models', (req, res) => {

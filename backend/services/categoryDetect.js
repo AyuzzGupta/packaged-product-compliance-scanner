@@ -157,6 +157,21 @@ async function detectCategory(text, manualCategory = 'auto') {
   try {
     const mlRes = await callMlClassifier(text);
     if (mlRes && mlRes.confidence >= 0.60) {
+      // Reconcile: If ML predicts 'other' due to standard Rule 6 address/packing boilerplate,
+      // but deterministic statutory markers (e.g. FSSAI, nutrition, aloe vera, soap) are present:
+      if (mlRes.category === 'other') {
+        const ruleCheck = ruleBasedClassify(text);
+        if (ruleCheck.category !== 'other' && ruleCheck.confidence >= 0.65) {
+          return {
+            category: ruleCheck.category,
+            confidence: ruleCheck.confidence,
+            probabilities: mlRes.probabilities,
+            engine: 'hybrid',
+            matchedKeywords: ruleCheck.matchedKeywords
+          };
+        }
+      }
+
       return {
         category: mlRes.category,
         confidence: mlRes.confidence,

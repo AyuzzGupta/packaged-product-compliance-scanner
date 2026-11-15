@@ -1,0 +1,6 @@
+filename,category,net_quantity,mrp,manufacturer,consumer_care,date
+sample_label_maggi.png,food,1,1,1,1,1
+sample_label_juice.jpg,food,1,1,1,1,1
+sample_label_soap.jpg,cosmetic,1,1,1,1,1
+sample_label_rice.jpg,food,1,1,1,1,1
+sample_label_electronics.jpg,other,1,1,1,1,1

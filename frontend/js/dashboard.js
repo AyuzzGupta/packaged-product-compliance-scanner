@@ -145,6 +145,46 @@ async function loadMlModelReports() {
   const nutriPre = document.getElementById('nutriscoreReportPre');
 
   try {
+    const res = await fetch('/api/ml/metrics');
+    const json = await res.json();
+    if (json.success && json.data) {
+      const m = json.data;
+      if (m.category_classifier) {
+        const cat = m.category_classifier;
+        const kpiCat = document.getElementById('kpiCatAcc');
+        if (kpiCat) kpiCat.textContent = `${(cat.accuracy * 100).toFixed(1)}%`;
+        if (catPre) {
+          catPre.textContent = `Overall Accuracy: ${(cat.accuracy * 100).toFixed(2)}%\n` +
+            `Train Samples: ${cat.train_samples} | Test Samples: ${cat.test_samples}\n` +
+            `Other Class Synthetic: ${cat.other_class_is_synthetic ? 'YES (synthetic expansion)' : 'NO'}\n\n` +
+            `Per-Class Performance:\n` +
+            JSON.stringify(cat.per_class, null, 2);
+        }
+      }
+      if (m.food_nutriscore) {
+        const fn = m.food_nutriscore;
+        const kpiRf = document.getElementById('kpiRfExact');
+        const kpiRule = document.getElementById('kpiRuleExact');
+        if (kpiRf) kpiRf.textContent = `${(fn.random_forest_model.exact_grade_accuracy * 100).toFixed(1)}%`;
+        if (kpiRule) kpiRule.textContent = `${(fn.rule_based_baseline.exact_grade_accuracy * 100).toFixed(1)}%`;
+        if (nutriPre) {
+          nutriPre.textContent = `Random Forest Model (Test N=${fn.test_samples}):\n` +
+            `  - Exact-Grade Accuracy: ${(fn.random_forest_model.exact_grade_accuracy * 100).toFixed(2)}%\n` +
+            `  - Within-1-Grade Accuracy: ${(fn.random_forest_model.within_one_grade_accuracy * 100).toFixed(2)}%\n\n` +
+            `Rule-Based Baseline (Same N=${fn.test_samples}):\n` +
+            `  - Exact-Grade Accuracy: ${(fn.rule_based_baseline.exact_grade_accuracy * 100).toFixed(2)}%\n` +
+            `  - Within-1-Grade Accuracy: ${(fn.rule_based_baseline.within_one_grade_accuracy * 100).toFixed(2)}%\n\n` +
+            `Top Feature Importances (%):\n` +
+            JSON.stringify(fn.feature_importances_percentage, null, 2);
+        }
+      }
+      return;
+    }
+  } catch (_) {
+    // Fall back to /api/models if /api/ml/metrics fails
+  }
+
+  try {
     const res = await fetch('/api/models');
     const json = await res.json();
     if (json.success && json.data) {
