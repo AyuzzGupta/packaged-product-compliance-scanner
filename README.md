@@ -133,20 +133,20 @@ Mini Project/
 
 ### A. The Frontend (Client Browser)
 - **HTML5**: Uses clean, semantic tags (`<header>`, `<main>`, `<section>`, `<article>`) for fast rendering and accessibility.
-- **Vanilla CSS3**: Engineered from scratch with custom CSS variables for colors, cards, and animations. **No heavy CSS frameworks like Bootstrap or Tailwind** were used, keeping page load under 50 milliseconds.
-- **Vanilla JavaScript (ES6+)**: Handles user actions (drag-and-drop file ingestion, switching between Consumer/Retailer modes, sending asynchronous `fetch()` requests to the backend, dynamic SVG circle score updates).
-- **Interactive Human-in-the-Loop Text Editor**: If a real packet has a crinkle or bad lighting and a character is missed, the user can edit the text directly in the browser and click *"Re-analyze"* without re-uploading the image!
+- **Vanilla CSS3**: Engineered from scratch with custom CSS variables for colors, cards, and typography. **No heavy CSS frameworks like Bootstrap or Tailwind** were used, keeping asset payload minimal and avoiding external stylesheet dependencies.
+- **Vanilla JavaScript (ES6+)**: Handles user interactions directly via native browser DOM APIs (drag-and-drop file ingestion, switching between Consumer/Retailer modes, asynchronous `fetch()` API calls, and SVG circular meters).
+- **Interactive Human-in-the-Loop Text Editor**: If a real packet has crinkles or glare and an OCR character is missed, the user can edit the text directly in the browser and click *"Re-analyze Text"* without re-uploading the image!
 
 ### B. The Backend (Node.js & Express)
-- **Node.js (v18+)**: An asynchronous, event-driven JavaScript runtime that handles concurrent user requests with high throughput.
-- **Express.js (v4.22)**: A lightweight web server routing API endpoints and serving static web pages.
-- **Sharp (v0.35)**: A lightning-fast C-based image processing library used **before** running OCR:
-  - Converts colored images to **Grayscale**.
-  - Normalizes contrast (stretches dark pixels and lightens background).
-  - Uses **Adaptive Otsu Thresholding** to turn blurry text into crisp black-and-white characters.
-- **Tesseract.js (v5.1)**: An open-source Optical Character Recognition engine compiled into **WebAssembly (WASM)**. It runs OCR locally on your machine using neural networks trained on English fonts and numbers.
-- **Compliance Engine (`complianceService.js`)**: A fast, deterministic regular-expression engine that searches the text for statutory patterns (MRP, Net Quantity in `g`/`kg`/`ml`, Manufacturer address, helpline phone/email, and manufacturing/expiry dates).
-- **Data Store (`dataStore.js` & `scans.json`)**: Saves every scan with a unique UUID, timestamp, extracted text, and compliance score to a clean local JSON file.
+- **Node.js (v18+)**: An asynchronous, event-driven JavaScript runtime handling concurrent client requests.
+- **Express.js (v4.21)**: Web application server routing API endpoints and serving static frontend assets.
+- **Sharp (v0.35)**: A high-performance libvips-based C library used for multi-variant image preprocessing before OCR:
+  - Generates enhanced variants: Grayscale + normalization + upscale, adaptive Otsu binary thresholding, and contrast sharpening.
+  - Automatically selects the preprocessing variant producing the highest mean OCR character recognition confidence.
+  - **Ephemeral Upload Retention Policy**: Uploaded label images are processed in-memory / temporary buffer and unlinked immediately after analysis. No packaging photos are permanently stored on disk.
+- **Tesseract.js (v5.1)**: An open-source Optical Character Recognition engine compiled into **WebAssembly (WASM)**. Executes neural network character extraction locally using `backend/assets/tessdata/eng.traineddata`.
+- **Statutory Compliance Engine (`complianceCheck.js`)**: Regular-expression pattern matcher auditing the presence of the 5 mandatory Legal Metrology Rule 6 declarations (Net Quantity, MRP inclusive of taxes, Manufacturer/Packer address, Customer Care helpline, and Manufacturing/Expiry dates).
+- **Data Store (`dataStore.js` & `data/scans.json`)**: Persistent JSON storage featuring a Promise-based serialized write queue and atomic filesystem rename (`tmp` file write + atomic `fs.rename`). Concurrency safety is verified via an automated 10-concurrent-write test (`tests/unit/test_datastore_concurrency.js`). Test runs tagged with `isTest: true` are excluded from live dashboard KPIs.
 
 ### C. The Machine Learning Microservice (Python FastAPI)
 Running independently on `localhost:8001`:
@@ -271,9 +271,9 @@ These questions are specifically tailored for college project vivas, external ex
 
 #### Q5. Why did you use Vanilla HTML, CSS, and JavaScript instead of React, Angular, or Vue?
 > **Answer**: 
-> 1. **Performance**: Vanilla JS has zero bundle bloat and zero Virtual-DOM reconciliation overhead, making the UI load in under 50 ms.
-> 2. **Simplicity**: For this application, state management is straightforward and does not require complex framework dependencies.
-> 3. **Reliability**: Vanilla web standards run natively in every modern browser without requiring complex build steps or node compile errors.
+> 1. **Performance & Light Footprint**: Vanilla JS has zero bundle bloat and zero Virtual-DOM reconciliation overhead, loading instantaneously with native browser rendering.
+> 2. **Simplicity**: For this application, UI state management is straightforward and does not justify adding large third-party framework runtime dependencies.
+> 3. **Native Compatibility**: Modern ES6+ standards and DOM APIs execute natively across every browser without requiring complex Babel, Webpack, or Vite build steps.
 
 #### Q6. How does the drag-and-drop file upload work?
 > **Answer**: The upload box attaches JavaScript event listeners for `dragenter`, `dragover`, `dragleave`, and `drop`. When a user drops an image file, the default browser file-opening behavior is prevented (`e.preventDefault()`). The file is validated for allowed MIME types (JPEG, PNG, WebP) and size (< 10 MB), a local preview is rendered via `FileReader.readAsDataURL()`, and the file is packaged into a `FormData` object sent via an asynchronous `fetch()` HTTP POST request to the backend.
